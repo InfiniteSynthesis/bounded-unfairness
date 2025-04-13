@@ -1,0 +1,40 @@
+\begin{cccFunctionality}
+    {\funcClock}
+    {clock}
+    {The global clock.}
+
+    This functionality maintains state variables as follows.
+
+    \begin{tabularx}{.9\textwidth}{c X}
+        \toprule[.3mm]
+        \textbf{State Variable}
+         & \textbf{Description}
+        \\ \midrule[.3mm]
+        $\partyset \gets \emptyset$ 
+         & The set of registered parties $\party = (\pid, \sid)$.
+        \\ \midrule
+        $F \gets \emptyset$
+         & The set of registered functionalities (together with their session identifier).
+        \\ \midrule
+        $\tau_\sid \gets 0$
+         & The clock variable for session \sid.
+        \\ \midrule
+        $d_\party \gets 0$
+         & The clock-update variable for $\party = (\pid, \sid) \in \partyset$.
+        \\ \midrule
+        $d(\F, \sid) \gets 0$
+         & The clock-update variable for $(\F, \sid) \in F$.
+        \\ \bottomrule[.3mm]
+    \end{tabularx}
+    \addtocounter{table}{-1}
+
+    \begin{cccItemize}[noitemsep]
+        \item Upon receiving $(\textsc{clock-update}, \sid_C)$ from some party $\party \in \partyset$ set $d_\party \gets 1$; execute \emph{Round-Update} and forward $(\textsc{clock-update}, \sid_C, \party)$ to \adv.
+
+        \item Upon receiving $(\textsc{clock-update}, \sid_C)$ from some functionality \F in a session \sid such that $(\F, \sid) \in F$ set $d(\F, \sid) \gets 1$, execute \emph{Round-Update} and return $(\textsc{clock-update},\allowbreak \sid_C, \F)$ to this instance of \F.
+
+        \item Upon receiving $(\textsc{clock-read}, \sid_C)$ from any participant (including the environment on behalf of a party, the adversary, or any ideal—shared or local—functionality) return $(\textsc{clock-read}, sid_C , \tau_{\sid})$ to the requestor (where \sid is the \sid of the calling instance).
+    \end{cccItemize}
+
+    \emph{Procedure Round-Update:} For each session \sid do: If $d(\F, \sid) = 1$ for all $\F \in F$ and $d_\party = 1$ for all honest partyset $P = (\cdot, \sid) \in \partyset$, then set $\tau_\sid \gets \tau_\sid + 1$ and reset $d(\F, \sid) \gets 0$ and $d_\party \gets 0$ for all partyset $\party = (\cdot, \sid) \in \partyset$.
+\end{cccFunctionality}
