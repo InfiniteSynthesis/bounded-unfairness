@@ -1,0 +1,11 @@
+{
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.fontSize": 14,
+    "latex-workshop.formatting.latex": "latexindent",
+    "editor.rulers": [
+        {
+            "column": 80,
+            "color": "#BB6588"
+        }
+    ],
+}
