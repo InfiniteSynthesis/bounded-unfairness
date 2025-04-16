@@ -1,0 +1,72 @@
+\section{Introduction}
+\label{sec:introduction}
+
+The development of blockchain protocols, starting with the Bitcoin blockchain \cite{Nak08}, lead to increased interest in a classic problem in distributed systems --- the state-machine replication (SMR) problem, cf.~\cite{CSUR:Schneider90}.
+%
+In SMR, the task of executing a state machine is assigned to a set of processors, and in the Byzantine fault tolerant version of the problem, processing requests should proceed unhindered by the actions of faulty nodes, even if such nodes arbitrarily deviate from the protocol in a coordinated manner.
+
+A special case of state machine replication is the problem of ledger consensus, cf.~\cite{EC:GarKiaLeo15,C:GarKiaLeo17,EC:PasSeeash17,RSA:GarKia20}, that requires the joint maintenance of a ledger of transactions so that two fundamental properties are being met: (i) consistency, i.e., the ledger of settled transactions is growing monotonically, (ii) liveness, i.e., the ledger of transactions incorporates new transactions in a timely manner.
+%
+A third property related to the order of transactions has received much less attention in analysis work.
+%
+In the original SMR abstraction of \cite{CSUR:Schneider90}, while proper ordering of transactions is required, the \emph{fairness} of this order is not explored.
+
+The formal investigation of fairness in the context of ordering transactions was initiated with the elegant results of \cite{C:KZGJ20}, which introduced it formally as ``order-fairness'' and pointed to an inherent impossibility to attain it in the distributed setting that relates to the Condorcet paradox.
+%
+In a nutshell, (receiver) order-fairness posits that whenever two transactions \tx and $\tx'$ are received in this order by most nodes in the system, then they should not be ordered differently in the ledger they maintain.
+%
+The Condorcet paradox kicks in when cycles in the receiving order of three or more transactions exist across the nodes.
+%
+In such case, it turns out that there may be no output transaction order that satisfies order-fairness.
+%
+This motivates relaxations of order-fairness that enable protocols to circumvent the impossibility and realize them in a distributed setting.
+
+There are two principal approaches in relaxing fairness.
+%
+The first one relies on a concept of time that can apply across all participants. In approximate order fairness \cite{C:KZGJ20}, fair ordering in the output applies only to appropriately ``spaced apart'' transactions across all nodes.
+%
+In timed-relative fairness, cf.~\cite{AFT:Kursawe20,OSDI:ZSCZA20}, if a transaction \tx is received by \emph{all} honest parties prior to $\tx'$, then \tx must be sequenced before $\tx'$.
+%
+There are two obvious disadvantages of this approach to fairness: first, it requires reference to some shared notion of time.
+%
+Second, it gives up on a lot of transactions whose propagation patterns somewhat overlap; in many applications however (e.g., front running mitigation) it is exactly for such transactions that fair ordering is needed.
+
+The second principal approach, block order fairness \cite{C:KZGJ20}, gives up on assigning a unique sequence number to all transactions in the output ledger.
+%
+Transactions can be batched together in the same ``block'' in which case the system can be said to refrain from actually ordering them.
+%
+Block order fairness has the advantage that it can be defined without referring to any shared notion of time and thus it can apply to transactions that are submitted concurrently and even apply to asynchronous execution environments.
+%
+However, given that many distributed ledger applications require a total ordering of the output, it leaves open the question how far apart transactions may end up when finally serialized.
+
+Motivated by the above, we set out to investigate the natural objective of minimizing the number of unfairly ordered transactions preceding for any transaction in the serialized output of a distributed ledger.
+%
+This objective, similar to block order fairness, needs no shared notion of time to be meaningful, but it also translates to an eminently practical guarantee in the SMR setting that block order fairness lacks: the system will strive to minimize the number of (inevitable) unfair state updates that happen before the processing of any transaction.
+
+To illustrate the importance of bounded unfairness with an example, consider a simple automated market maker (AMM) where it maintains a constant product $XY = C$ for swapping two tokens $X$ and $Y$ ($Y$ is the native token) and one transaction can only sell a fixed number of tokens.
+%
+When the market loses confidence in $X$, every stakeholder would like to sell $X$ to minimize her loss.
+%
+Consider an AMM state $(X_0, Y_0)$ (i.e., $X_0 Y_0 = C$) and a number $k$ of stakeholders $s_0, s_1, \dots, s_{k - 1}$, each one selling an amount of $\Delta = \delta X_0$ tokens at times $t_0 < t_1 < \cdots < t_{k - 1}$, respectively.
+%
+At time $t_i$, the AMM state has slipped to the point $(X_0 + i \Delta, C / (X_0 + i \Delta)) = ((1 + i \delta) X_0, Y_0 / (1 + i \delta))$ and the exchange rate for stakeholder $i$ should be $(Y_0 / X_0) / [(1 + i \delta)(1 + (i + 1) \delta)]$.
+%
+In particular, an unfair ordering $(s_1, s_2, \dots, s_{k-1}, s_0)$ will result in stakeholder $s_0$ transacting with exchange rate $(Y_0 / X_0) / [(1 + k\delta)(1 + (k + 1)\delta)]$ instead of $(Y_0 / X_0)/(1 + \delta)$.
+%
+It follows the exchange rate becomes worse proportionally to $1 / k^2$  when $k-1$ unfair state updates take place, thus keeping the number of unfair state updates at the minimum possible value (as bounded unfairness strives to do) is in the best interest of the users, protecting them from the effects of unfair slippage.
+
+\input{content/introduction/our-results}
+
+\paragraph{Organization of this paper.}
+%
+The rest of the paper is organized as follows.
+%
+In \cref{sec:preliminaries}, we present preliminaries on the protocol execution model, transaction profiles and dependency graphs.
+%
+We formally define and analyze transaction order fairness in \cref{sec:order-fairness}.
+%
+In \cref{sec:protocol}, we present our fair-order protocol \Taxis.
+%
+We discuss some future research directions that might be of independent interest in \cref{sec:discussions}.
+%
+Detailed description of related works, preliminaries and proofs can be found in the appendix.

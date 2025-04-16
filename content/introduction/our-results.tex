@@ -1,0 +1,125 @@
+\subsection{Our Results}
+\label{subsec:our-results}
+
+We introduce a new class of (receiver) order fairness definitions -- \emph{bounded unfairness}.
+%
+In SMR protocols all input transactions are eventually sequenced following an ordering \orderOutput which assigns a unique index to each transaction.
+%
+Our definition is parameterized by a threshold $\varphi$ and a bound $B$; each party that runs the protocol has an ``input profile'' which ranks all received transactions according to the order they were received.
+%
+For two transactions $\tx, \tx'$, we say that $\tx \before^\varphi \tx'$ if $\varphi$ fraction of input profiles present \tx before $\tx'$.
+%
+Given any two such transactions, the output ordering \orderOutput should satisfy
+$\orderOutput(\tx) - \orderOutput(\tx') \leq B$.
+%
+I.e., \tx cannot be serialized more than $B$ positions later compared to $\tx'$.
+
+Observe that $(\varphi, B)$-fairness matches standard order fairness for the case of $B = 0$ while for any choice $B > 0$ it relaxes it.
+%
+The relaxation allows transactions $\tx \before^\varphi \tx'$ to be ``unfairly'' sequenced as $(\tx', \ldots, \tx)$ with $\tx'$ coming at most $B$ positions earlier.
+%
+Given the unrealizability of fairness for $B = 0$, the obvious question to ask here is for what values of $B$ it is possible to realize the property and what is the smallest possible choice for it.
+
+In order to minimize $B$, we allow it to be a function of the parties' input profiles and the given pair of transactions.
+%
+The input profiles define a transaction dependency graph $G$ which includes an edge $(\tx, \tx')$  if and only if $\tx \before^\varphi \tx'$. Given this, we observe that the problem of $(\varphi, B)$ fairness relates to the concept of \emph{graph bandwidth} over $G$, cf. \cite{FSTTCS:JKLSS19}.
+%
+The bandwidth problem asks for a vertex ordering $\sigma: V \rightarrow \mathbb{N}$ that minimizes the \emph{maximum difference} $\sigma(u) - \sigma(v)$ across all edges $(u,v) \in E$.
+%
+We call this the \emph{directed bandwidth} as it aims at minimizing the length of the ``backward edges'' in $G$, i.e., those that violate fairness.
+%
+We instantiate  the bound $B$ using the directed bandwidth of the strongly connected component (SCC) that contains the two transactions, or 0 if no such SCC exists.
+
+Our first result regarding our new definition that bases fairness on directed bandwidth establishes that it is the best possible we can hope for in terms of minimizing unfair state updates preceding any transaction.
+%
+Indeed, we prove that for any protocol that serializes the transactions there can be SCCs in the dependency graph within which two transactions \emph{must} be ordered spaced apart by as many positions as the directed bandwidth of the SCC.
+%
+Any function $B$ that beats this bound is unrealizable!
+
+Our second result regarding fairness based on directed bandwidth investigates the complexity of the problem.
+%
+By adapting previous results for the bandwidth problem over undirected graphs, we prove that the directed bandwidth problem is \NP-hard and non approximable for any constant ratio.
+%
+Armed with this result, we prove that any protocol that realizes our order fairness property optimally also solves directed bandwidth, i.e., it solves an \NP-hard problem.
+%
+We also prove upper and lower bounds for the maximum directed bandwidth across all graphs; this result establishes the worst-case that is to be expected in terms of serializing the transactions with bounded unfairness.
+%
+In particular we show that in the worst-case directed bandwidth equals $n-\Theta( \log n)$ where $n$ is the number of transactions.
+%
+Given the above, a natural question is how previous relaxations of order fairness fare w.r.t. bounding unfairness.
+%
+We present explicit counterexamples illustrating how such previous definitions do not provide good bounds.
+
+We then turn to investigate the inherent tension between liveness and our fairness definition.
+%
+Similar to block order fairness, we first prove that it is impossible to satisfy liveness and directed-bandwidth order-fairness when the transaction delivery mechanism is asynchronous.
+%
+Intuitively, the reason is that Condorcet cycles may extend indefinitely in a manner which is impossible to accommodate outputting any transaction in the cycle without breaking fairness.
+%
+Given this impossibility one has to either settle for weak-liveness (transactions are included \emph{eventually} \cite{C:KZGJ20}) or restrict fairness a bit more.
+%
+Towards this latter target we consider a bounded delay transaction dissemination environment where each transaction is disseminated within a window of time \txDelay.
+%
+In this setting our core observation is that Condorcet cycles spanning a long period of time can be partitioned across the time domain in such a way that a bound on directed bandwidth of the graph can be derived.
+%
+In such graphs we prove that directed bandwidth is bounded by at most 3 times the maximum number of transactions disseminated concurrently within a \txDelay time window.
+%
+This gives rise to a relaxed definition of our fairness notion that we call \emph{timed directed bandwidth}.
+
+The astute reader so far would have observed that we introduced our concept in a setting where participants are static --- the relation $\tx \before^\varphi \tx'$  which gives rise to the transaction dependency graph is based on numbers of parties who witness a particular order between the two transactions.
+%
+In a permissionless environment however, e.g., such as that of Bitcoin, participants may engage with a protocol in a transient manner hence making $\before^\varphi$ ill defined.
+%
+We address this issue by recasting the relation in the permissionless setting as follows:  $\tx \before^\varphi \tx'$ means that a $\varphi$ fraction of hashing power ``stands behind'' a particular ordering between two transactions for a minimum period of time which is specified by a security parameter.
+
+Armed with the above definitional framework, we focus on realizing directed bandwidth fairness.
+%
+We put forth \Taxis, a permissionless protocol that operates in the same setting as Bitcoin.
+%
+We present two variants.
+%
+In \TaxisWL, miners continuously submit suffixes of their transaction input profile packaged within proofs-of-work using the 2-for-1 PoW technique of \cite{C:GarKiaLeo17} that are included provided they are sufficiently recent using the recency condition of \cite{PODC:PasShi17}.
+%
+In this fashion it is possible to continuously compute and expand the transaction dependency graph $G$ on-chain for the settled set of transactions.
+%
+The ledger is then created by identifying SCCs of $G$ and calculating directed bandwidth.
+
+Our second variation of the \Taxis protocol breaks long cycles when they occur and uses the median of timestamps to determine the transaction ordering within large SCCs.
+%
+This enables us to achieve liveness and \emph{timed directed bandwidth fairness}, the relaxation of our directed bandwidth fairness definition that relaxes fairness for particularly long Condorcet cycles.
+
+We present a full analysis of our protocols in a permissionless dynamic participation setting using the analytical toolset from \cite{C:GarKiaLeo17,EPRINT:GarKiaLeo20}.
+%
+Notably, we enhance the ``typical execution'' concept by lower-bounding the difficulty that $\varphi$ fraction of honest parties can acquire.
+%
+This lower bound makes it possible for us to show that, for a specific transaction \tx, $\varphi$ fraction of honest parties can accumulate more difficulty than others (including the adversary and the rest of honest parties) during \PBWindowLen consecutive rounds, which guarantees that parties will agree on (i) the transactions that precede \tx; and (ii) a timestamp associated with \tx.
+%
+Combining these properties with our dependency graph construction rules, we conclude consistency, liveness (for \Taxis) and order-fairness according to the description above.
+
+Regarding performance, we note that \TaxisWL runs exponentially on the number of edges of the subgraph of the transaction graph that is defined by the (largest) Condorcet cycle.
+%
+Recall that given the hardness and non-approximability of directed bandwidth we cannot expect a polynomial-time algorithm; furthermore, in practice, Condorcet cycles may be quite small or even not occurring at all (in non-adversarial settings), see \cite{CCS:KDLJK23}, hence for practical purposes exponential dependency on their corresponding subgraph length may not be prohibitive.
+%
+Furthermore, for \Taxis, assuming a \txDelay bound on transaction dissemination, we improve the complexity to be bounded by an exponential on the size of the largest Condorcet cycle (for constant throughput environments).
+
+We conclude with a discussion on alternative ways to relaxing order-fairness and open questions regarding the structure of transaction dependency graphs.
+%
+While our concept of directed bandwidth achieves an optimal ordering of transactions in terms of bounding unfairness, there can be orthogonal considerations that highlight the multi dimensionality of the fairness problem.
+%
+We also discuss issues related to dynamic participation and how our results can also translate to the permissioned setting.
+
+As a final contribution we would like to highlight how our work can have applications  to social choice theory.
+%
+Typically, in social choice, the input profiles of parties (e.g., rankings of the candidates) are assumed to be finite sequences.
+%
+Given such rankings, it is sought to produce an agreeable ordering with good properties.
+%
+In such case, fairness captures the natural property that if candidate $A$ is preferable by a majority of participants compared to another candidate $B$, then $A$ should be ranked higher in the final ranking.
+%
+In the social choice context, our result can be seen as a way to answer the social choice problem when participants have an ever evolving sequence of preferences and  it is desired to combine their preferences while minimizing the violations of their preferences as much as possible.
+%
+For instance, consider an infinite sequence of news items, and a dynamic population of agent-editors with distinct preferences for each one, in terms of e.g., how interesting each one is.
+%
+The task is to produce a single output news feed that respects the preferences of the agent-editors as much as possible.
+%
+Our results readily translate to this setting enabling the agent-editors to produce a unified news feed with the minimum possible misplacement between news items: specifically if $\varphi$ fraction of agents deems item $\mathrm{n}$ as more interesting than item $\mathrm{n'}$, then $\mathrm{n'}$ will be placed at most $B$ positions before $\mathrm{n}$ in the unified news feed.
