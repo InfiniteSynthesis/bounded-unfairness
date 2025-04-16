@@ -1,0 +1,80 @@
+\section{Discussion and Future Directions}
+\label{sec:discussions}
+
+\paragraph{Alternative ways of relaxing order fairness.}
+%
+In this paper we define transaction order fairness based on upper-bounding the positions that a transaction can be ordered before another when violating their preference.
+%
+It is worth highlighting however that the graph theoretic model we put forth in \cref{sec:order-fairness} can accommodate a larger variety of order fairness relaxations.
+
+For instance, one could consider the relaxation ``an output profile \orderOutput should break the \emph{least} number of $\varphi$-preferences.''
+%
+In the context of dependency graphs, this idea on fair order can be related to the \textsc{FeedbackArcSet} problem \cite{TOCS:BFKKT12} which asks to remove a subset of edges to make the graph acyclic while keeping the subset as small as possible.
+
+Another possible relaxation is to minimize the cumulative size of all violations.
+%
+This means that instead of focusing on the maximum distance of back edges in a component, we care about their sum $\sum_{(u, v)\in E,  \orderOutput(u) > \orderOutput(v)} \allowbreak \orderOutput(u) - \orderOutput(v)$.
+%
+This definition, can be considered as the ``global'' variant of our order fairness notion; and, the corresponding graph problem --- \textsc{MinimumLinearArrangement} \cite{TOCS:BFKKT12} --- is also well-studied.
+
+Another flavor of fairness that can also be cast in the same context is studied in a recent work, \textsf{Themis}, \cite{CCS:KDLJK23}, called consequent-transaction fairness, which can be viewed in our context as maximizing the number of consecutive forward edges.
+
+\paragraph{Structure of transaction dependency graphs.}
+%
+An interesting question arises with respect to $(\profileSet,\varphi)$-dependency-graphs, as they were defined in \cref{subsec:transaction-profiles-dependency-graphs}.
+%
+In \cref{thm:dependency-graph-min-cycle} we show that, unless $\before^\varphi$ is the majority relation, $G_{\profileSet,\varphi}$ cannot have arbitrarily small cycles.
+%
+Is this also a sufficient condition?
+%
+I.e., given a graph $G$ without cycles of size less than $\lceil1/(1-\varphi)\rceil$, do there exist profiles $\profileSet$ such that $G = G_{\profileSet,\varphi}$?
+%
+When $\before^\varphi$ is the majority relation, this question was answered positively for any oriented graph by McGarvey in \cite{McGarvey53} (see \cref{subsec:graph-properties}).
+%
+The majority case has been studied further in other works.
+%
+Stearns~\cite{Stearns59} and later Erd\H{o}s and Moser~\cite{ErdMos64} give bounds on the required size of \profileSet.
+%
+More recently, Alon \cite{AAM:Alon02} looked into a more refined property of \profileSet.
+%
+We suggest the study of similar questions with respect to $G_{\profileSet,\varphi}$, when $1/2<\varphi\le1$ as an interesting direction.
+
+\paragraph{$(\varphi,\DBW)$-fair-order.}
+%
+\cref{thm:best-fairness} shows that $(\varphi, \DBW)$-fair-order is the best that we can expect on a Condorcet cycle SCC in terms of bounding unfairness. 
+%
+We note here that it is possible for some transactions $\tx, \tx'$ to be put even closer than the bandwidth among all bandwidth-optimal orderings.
+%
+Nonetheless, there is no need to push this definition a step further (e.g., to bound the distance of any two transactions by their maximum distance among all bandwidth-optimal orderings).
+%
+The reason is that \cref{def:varphi-dbw-order-fairness} has already been restricted enough such that only a bandwidth-optimal ordering on this SCC will satisfy it.
+%
+Even if we might be able to bound the distance on some transaction pairs further it does not change the set of orderings that satisfy this definition.
+
+\paragraph{Securing order fairness with transient joining.}
+%
+Astute readers may notice that, in \cref{subsec:order-fiarness-permissionless}, it becomes impossible to achieve order fairness in the permissionless environment if the joining pattern of alert parties is transient --- i.e., no party stays alert for a long time hence no transaction order preference can persist in the network.
+%
+While this problem stems from the nature of permissionless settings and is thus intrinsically impossible to solve, we provide two alternative ways to model the execution environment that can offer different trade-offs. 
+
+One route is to restrict the adversarial power on registering / de-registering parties.
+%
+I.e., \adv is allowed to de-register at most $\tau$ fraction of honest parties during any time window of length $K$, but $\tau$ should remain sufficiently small with respect to $K$ so that when a transaction is received by sufficiently many parties earlier than another, both could be continuously reported.
+
+Alternatively, we could extend our dynamic participation model (\cref{subsec:protocol-execution-model}) to let parties ``bootstrap'' to collect transactions before they become alert.
+%
+Specifically, we introduce a profile as a new resource that an alert party needs in order to run the protocol.
+%
+If a party \party has passively listened to the protocol and obtained a sufficiently long transaction log, then \party is ``profile-ready.''
+%
+Alert parties should be those that are also profile-ready.
+%
+Given this and that the environment (which controls how the population of parties fluctuates) is restricted to offer a sufficient number of alert parties, in this new setting we guarantee that all alert parties can keep reporting transaction order preference; and, this mechanism is robust against the adversarial registration and de-registration on alert parties.
+
+\paragraph{Order fairness in the permissioned setting.}
+%
+We note that $(\varphi, \DBW)$-fair-order serialization can also be achieved with a PKI.
+%
+Specifically, parties could make use of the broadcast and set consensus module in \textsf{Aequitas} \cite{C:KZGJ20} to let parties agree on a dependency graph; then, instead of alphabetically serializing transactions in the same ``block'', parties use \cref{algorithm:directed-bandwidth} to get the bandwidth-optimal order.
+%
+With this additional treatment, we can adapt \Taxis as a permissioned protocol that achieves consistency, weak-liveness and $(\varphi, \DBW)$-order-fairness.
