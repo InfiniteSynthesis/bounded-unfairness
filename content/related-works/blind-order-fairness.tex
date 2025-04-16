@@ -1,0 +1,19 @@
+\subsection{Blind Order Fairness}
+
+Blind order fairness \cite{TOPLAS:ReiBir94,C:CKPS01,ICNP:ACGLRTY18,IWQOS:SokRot20,TOKENOMICS:MalSza22,AFT:CDEG23} considers the fair-order problem in a practical point of view --- i.e., since transaction content is the main information that an adversary will use to manipulate transaction order, we hide the content before their order is finalized.
+%
+In other words, all protocol participants (including the adversary) are ``blind'' to the transactions; and, when parties learn the transaction content, it has already been too late to re-order them.
+%
+This concept has been proposed as ``input causality'' before the blockchain era, see \cite{TOPLAS:ReiBir94,C:CKPS01,DSN:DuaReiZha17} for more details.
+%
+For the sake of hiding content, cryptographic primitives are employed in blind-order-fairness protocols, e.g., commit-and-reveal \cite{ICNP:ACGLRTY18,IWQOS:SokRot20}, verifiable secret sharing and threshold encryption \cite{TOKENOMICS:MalSza22} and delay encryption \cite{AFT:CDEG23}.
+
+Aside from blindness, some works provide additional ``fair'' (random) pending transaction selection rules.
+%
+\textsf{Helix} \cite{ICNP:ACGLRTY18} is a protocol that applies a verifiable random sampling on the public memory pool, thus selecting transactions with equal probability.
+%
+Analogous to this design, Sokolik and Rottenstreich \cite{IWQOS:SokRot20} present a random transaction inclusion scheme with weight measured by the time that transactions stay in the mempool.
+
+Note that blind order fairness is orthogonal to receiver-side order fairness (see below).
+%
+They can be applied together to further improve the fairness of a system.

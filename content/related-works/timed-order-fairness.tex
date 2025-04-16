@@ -1,0 +1,40 @@
+\subsection{Timed Order Fairness.}
+
+Block-order-fairness suffers from potential liveness failure unless assuming a non-corrupting adversary and order fairness parameter $\varphi = 1$.
+%
+However this would tremendously restrict the usage scenarios of the fair-order protocol.
+%
+Thus, some follow-up works \cite{AFT:Kursawe20,OSDI:ZSCZA20} focus on further weakening the order fairness notion to circumvent Condorcet cycles.
+
+Since every protocol participants will conventionally maintain a local clock, it is reasonable to let them assign a local timestamp to each transaction.
+%
+Now, consider two (local) timestamp vectors of transaction $\tx, \tx'$ respectively.
+%
+We can decide the their order as $\tx, \tx'$ if these two vectors are ``separated'' by a timestamp $\tau$.
+%
+More precisely, ``separate'' means that all timestamps assigned to \tx are earlier than $\tau$ and all timestamps assigned to $\tx'$ are later than $\tau$.
+
+\begin{definition}
+    [Timed-order-fairness \cite{AFT:Kursawe20,OSDI:ZSCZA20}, restated]
+    \label{def:timed-order-fairness}
+
+    A function $F$ satisfies \emph{timed-order-fairness} if for all input $\profileSet = \profile_1, \profile_2, \ldots, \profile_n$ and $\orderOutput = F(\profileSet)$,
+    %
+    \[
+        \max \mapTimestamp(\tx_i) < \min \mapTimestamp(\tx_j) \Longrightarrow \orderOutput(\tx_i) < \orderOutput(\tx_j)
+    \]
+    %
+    where \mapTimestamp is an admissible timestamp assignment with \profileSet.
+\end{definition}
+
+While working on the same direction, \cite{AFT:Kursawe20,OSDI:ZSCZA20} look at different problems. \cite{AFT:Kursawe20} designs a widget which consists of a fixed number of reputable validators to help any blockchain protocols ensure fair ordering; and \cite{OSDI:ZSCZA20} presents a state machine replica BFT protocol to achieve order fairness.
+
+Timed-order-fairness has been criticized for strongly relying on synchronized clocks.
+%
+For instance, the definition becomes meaningless when local clocks are apart from each other for an hour.
+%
+Nonetheless, we highlight that ``timestamps'' in \cref{def:timed-order-fairness} does not necessarily need to be the real world time.
+%
+In fact, timed-order-fairness works as long as the protocol itself can maintain a ``protocol time'', which let all the time-aware parties' local clocks stays in a narrow interval.
+%
+This can be easily achieved with some clock synchronization protocols.

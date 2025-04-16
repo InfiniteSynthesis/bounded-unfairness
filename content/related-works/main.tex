@@ -1,0 +1,18 @@
+\section{Further Related Works}
+\label{sec:further-related-works}
+
+In a long line of research on understanding order fairness in the state machine replica (SMR) problem, Schneider \cite{CSUR:Schneider90} first proposes \emph{order} --- ``Every non-faulty state machine replica processes the requests it receives in the same relative order'' --- as the third property (other than consistency and liveness) that an ideal BFT SMR protocol should satisfy.
+%
+This is later formalized by Garay and Kiayias \cite{RSA:GarKia20} as ``serializability'' in ledger consensus.
+%
+Serializability requires that if \tx enters all honest parties' mempool before $\tx'$, honest parties should reject the order $\tx', \tx$ (in their settled ledger).
+
+We provide an overview of all existing works on defining order fairness and implementing fair-order protocols.
+%
+Roughly speaking, we classify them into three directions --- (i) blind-order-fairness, which orders transactions while hiding their content; (ii) block-order-fairness, solving the Condorcet paradox by claiming ``blocks''; and (iii) timed-order-fairness, defining a time-based fair-order without cyclic preferences.
+%
+We highlight that, compared with our contributions, none of these existing fair order notions provides bounded unfairness --- i.e., there is no bound in the definition on how ``unfairly'' a transaction could be put before another.
+
+\input{content/related-works/blind-order-fairness}
+\input{content/related-works/block-order-fairness}
+\input{content/related-works/timed-order-fairness}

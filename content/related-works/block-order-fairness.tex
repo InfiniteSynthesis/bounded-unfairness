@@ -1,0 +1,63 @@
+\subsection{Block Order Fairness}
+
+Kelkar \textit{et al.} \cite{C:KZGJ20} identifies the existence of Condorcet paradox (which is first observed in the social choice theory) in defining fair-order based on aggregating $\varphi$-fraction of parties' individual preference.
+%
+Condorcet paradox shows that the collective preferences can be cyclic.
+%
+This non-transitivity directly leads to the impossibility of achieving receive-order-fairness where processors decide a final order following $\varphi$ fraction of honest parties' choice exactly (i.e., $\tx_1 \before^\varphi \tx_2$ indicates $\tx_1$ before $\tx_2$ in the output).
+
+Towards the goal of mitigation, Kelkar \textit{et al.} work on a relatively weak definition, which blockifies all transactions in a Condorcet cycle and claims that they are processed simultaneously.
+%
+They call this $\varphi$-block-order-fairness --- ``If $\tx_1 \prec^\varphi \tx_2$, then the final output reports $\tx_1$ \emph{no later than} $\tx_2$.''.
+%
+We point out that the output of $\varphi$-block-order-fairness is actually a partial order --- i.e., it does not indicate the order inside a block.
+%
+Therefore in \cref{def:block-order-fairness}, we adopt $\orderOutput'$ to denote a surjection from $\mathbb{T}$ to $\{1, 2, \ldots, m\}$ where $m \le |\mathbb{T}|$.
+
+\begin{definition}
+    [$\varphi$-block-order-fairness \cite{C:KZGJ20}, restated]
+    \label{def:block-order-fairness}
+    
+    A function $F$ satisfies \emph{$\varphi$-block-order-fairness} if for all input $\profileSet = \profile_1, \profile_2, \ldots, \profile_n$ and $\orderOutput' = F(\profileSet)$,
+    %
+    \[
+        \tx_i \before^\varphi \tx_j \Longrightarrow \orderOutput'(\tx_i) \le \orderOutput'(\tx_j).
+    \]
+\end{definition}
+
+\paragraph{\textsf{Aequitas} protocol family.}
+%
+Kelkar \textit{et al.} \cite{C:KZGJ20} also present a protocol family \textsf{Aequitas} that achieves $\varphi$-block-order-fairness and can tolerate the adversarial nodes for up to $1 / 2$ in a synchronous network and up to $1 / 4$ assuming asynchronous transaction dissemination.
+%
+Notably, $\varphi$-block-order-fairness in \textsf{Aequitas} is achieved by sacrificing (standard) liveness of the protocol.
+%
+An intuitive explanation is that when the protocol execution encounters Condorcet cycles, parties have to wait indefinitely until the end of these cycles (which can last forever in the worst case), thus blocking all the transactions in the cycle from getting settled.
+
+Following the same definition in \cite{C:KZGJ20}, Kelkar \textit{et al.} \cite{ACCS:KDK22} proposes a variant of \textsf{Aequitas} that extends the participation model to a ``permissionless'' setting,
+where (a small fraction of) parties can join and leave but the total number of parties running the protocol remains \emph{static} during the execution.
+%
+The general idea is to let the transaction order of a modular chain simulate the receiving order of a server in the previous model.
+%
+Then, parties will run the permissioned \textsf{Aequitas} protocol based on the on-chain data.
+%
+Note that this protocol only works when no Condorcet cycles exist (this is achieved by constraining the network delay).
+
+\begin{remark}
+    Kelkar \textit{et al.} \cite{C:KZGJ20,ACCS:KDK22} claim that \textsf{Aequitas} can achieve both standard liveness and $\varphi$-block-order-fairness when the transaction diffusion network is fully synchronous --- i.e., \tx is delivered to all honest parties within two consecutive rounds.
+    %
+    However, we point out that this is not true in our model where the input profiles are strict total orders on transactions. In other words, even if a bunch of transactions are received in the same ``round'', they may still form Condorcet cycles. Note that this is not a peculiarity of our model: any fine grain timing model would result on a strict total ordering for the  input profiles.
+\end{remark}
+
+In order to solve the weak-liveness issue in \textsf{Aequitas}, Kelkar \textit{et al.} propose a leader-based permissioned protocol \textsf{Themis} \cite{CCS:KDLJK23} that achieves \cref{def:block-order-fairness} with standard liveness.
+%
+This protocol is built on top of Hotstuff and is resistant to up to $1 / 4$ corrupted nodes.
+%
+\textsf{Themis} allows leaders to split transactions in a Condorcet cycle into batches and output transactions in each batch following the Hamiltonian-cycle order.
+%
+We discuss the downside of this ordering policy in the context of \cref{def:varphi-dbw-order-fairness} in \cref{subsec:order-fairness-from-directed-bandwidth}.
+
+It is also worth noting that Cachin \textit{et al.} \cite{FC:CMSZ22} elaborate on a variant of $\varphi$-block-order-fairness, defining a differential order fairness property based on the standard validity notions for consensus protocols \cite{PODC:FitGar03}.
+%
+They also present an efficient atomic broadcast protocol that guarantees message delivery in a differential fair order.
+%
+Recently, Vafadar and Khabbazian \cite{AFT:VK23} further enhance block-order-fairness by adopting ranked-pairs to order transactions inside a Condorcet cycle, which they believe has good properties and can be useful to mitigate the Condorcet attacks.
