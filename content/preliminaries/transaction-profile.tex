@@ -1,0 +1,87 @@
+\subsection{Transaction Profiles and Dependency Graphs}
+\label{subsec:transaction-profiles-dependency-graphs}
+
+Let $\mathbb{T}$ denote the (finite) set of all possible transactions with elements \tx.
+%
+A \emph{transaction profile} (or ``profile'' for short) is a bijection $\profile : \mathbb{T} \rightarrow [m]$ where $m = |\mathbb{T}|$.
+%
+For each (honest) party $\party_i$, its receiving transaction log forms a profile which is denoted by $\profile_i$.
+%
+Consider a set of $n$ parties \setParties, we write $\profileSet = \langle \profile_1, \profile_2, \ldots, \profile_n \rangle$ as the list of all transaction profiles.
+%
+Regarding order fairness, we are interested in a serialization function $F$ that takes an indefinite number of transaction profiles \profileSet as input and outputs a new profile denoted by \orderOutput, namely $\orderOutput = F(\profileSet)$.
+
+We adopt ``\before'' to describe the ``order before'' relation on $\mathbb{T} \times \mathbb{T}$.
+%
+Note that this relation is (i) irreflexive (not $\tx \before \tx$); (ii) asymmetric ($\tx \before \tx'$ implies not $\tx' \before \tx$) and (iii) transitive (i.e., $\tx \before \tx'$ and $\tx' \before \tx''$ implies $\tx \before \tx''$).
+%
+We write $\tx \before_i \tx'$ if $\profile_i(\tx) < \profile_i(\tx')$; i.e. $\tx \before \tx'$ in party $\party_i$'s profile (in other words, $\party_i$ receives transaction $\tx$ before $\tx'$).
+%
+For every pair of distinct transactions $\tx, \tx'$ in $\mathbb{T}$, they are ascribed either the relations $\tx \before_i \tx'$ or $\tx' \before_i \tx$ in profile $\profile_i$.
+
+In order to achieve order fairness, we are interested in the pairs of transactions such that one is received by sufficiently many parties before the other.
+%
+To measure what ``sufficiently many'' means, we adopt $\varphi \in \mathbb{R}^+$ as the order fairness parameter.
+%
+We say $\tx \before^\varphi_\profileSet \tx'$ if, for profiles \profileSet, $\tx \before \tx'$ holds in at least $\varphi$ fraction of these profiles (when the profile set is explicit in the context we drop the subscript and simply write $\tx \before^\varphi \tx'$).
+%
+Note that when $\varphi \le 1 / 2$, it results in a logical contradiction as both $\tx \before^\varphi \tx'$ and $\tx' \before^\varphi \tx$ hold.
+%
+Hence, we only care about $\varphi$ such that $1 / 2 < \varphi \le 1$.
+
+\paragraph{Transaction timestamp assignment.}
+%
+We next present a timestamp assignment function \mapTimestamp which is useful in the context of state machine replication problem.
+%
+Note that different from the one-shot consensus where input profiles are given to parties as input in an instant, the transaction log that a party receives grows with time.
+%
+Hence, we assign each transaction a timestamp to indicate when it is received.
+%
+I.e., parties store transactions in pair $\langle \tx, \mathtt{t} \rangle$ where $\mathtt{t} \in \mathbb{N}^+$ is the time that they receive \tx.
+%
+We denote the timestamp of \tx in profile \profile as \timestamp{\tx, \profile} and the list of all timestamps associated with \tx in \profileSet as \timestamp{\tx}.
+%
+We call the profiles \profileSet \txDelay-disseminated if for all transactions, the timestamps associated with them are within a \txDelay time window (i.e. $\forall \tx \in \mathbb{T}, \max \timestamp{\tx} - \min \timestamp{\tx} \le \txDelay$).
+
+Consider an assignment of a timestamp to each transaction, which can be represented by a function $\mapTimestamp: \mathbb{T} \rightarrow \mathbb{N}^+$.
+%
+If for profiles \profileSet it holds that $\forall \tx \in \mathbb{T}, \mapTimestamp(\tx) \in \timestamp{\tx}$, then we say \mapTimestamp is compliant with \profileSet.
+%
+Let \mapTimestampSetR denote the set of all compliant \mapTimestamp with \profileSet.
+%
+Especially, we are interested in the mapping from each transaction to its earliest receiving time; and we denote this mapping by \mapTimestampMin (i.e., $\forall \tx \in \mathbb{T}, \mapTimestampMin(\tx) = \min \timestamp{\tx}$).
+
+\paragraph{Transaction dependency graphs.}
+%
+Consider a list of transaction profiles $\profileSet = \langle \profile_1, \profile_2, \ldots, \profile_n \rangle$.
+%
+An $(\profileSet, \varphi)$-dependency-graph is a directed graph $G_{\profileSet, \varphi}$ constructed as follows.
+%
+For each transaction $\tx_i$, add a vertex $v_i$ to $G_{\profileSet, \varphi}$; then, for any pair of vertices $\tx_i, \tx_j$, add an edge $(v_i, v_j)$ if $\tx_i \before^\varphi \tx_j$.
+%
+When $\before^\varphi$ is the majority relation (i.e., $\varphi = 1 / 2 + 1 / m$, where $m$ is the total number of transactions), we write $G_\profileSet$ and call the graph $\profileSet$-dependency.
+%
+Note that when $\varphi > 1 / 2$, at most one of $(i, j)$ and $(j, i)$ can be added --- i.e., a dependency graph is oriented.
+
+\paragraph{Graph notations.}
+%
+A vertex ordering of a graph $G = (V , E)$ is a bijection $\orderOutput : V \rightarrow [n]$ where $n = |V|$.
+%
+A null graph is the unique graph having no vertices.
+%
+A subgraph $S$ of $G$ is another graph such that $V(S) \subseteq V(G) \wedge E(S) \subseteq E(G)$ ($V(S)$ must include all endpoints of the edges in $E(S)$).
+%
+Conversely, a supergraph $H$ of $G$ is a graph formed by adding vertices, edges, or both to $G$.
+%
+A spanning supergraph is a supergraph by merely adding edges to the original graph.
+
+A directed graph is strongly connected if every vertex is reachable from every other vertex.
+%
+The strongly connected components are maximal subgraphs of a directed graph that are themselves strongly connected.
+
+For a dependency graph $G$, we slightly abuse the notation and use transaction \tx and its generated vertex $v$ interchangeably.
+%
+For instance, $(\tx, \tx')$ denotes the edge from vertex $v$ generated by \tx to vertex $v'$ generated by $\tx'$.
+%
+And $\orderOutput(\tx)$ is the same as  $\orderOutput(v)$ where $v$ is generated by \tx.
+

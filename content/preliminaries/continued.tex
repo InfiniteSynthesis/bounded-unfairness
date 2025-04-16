@@ -1,0 +1,148 @@
+\section{Preliminaries (Cont'd)}
+\label{sec:preliminaries-contd}
+
+\paragraph{Round structure and protocol execution.}
+%
+As in \cite{EC:GarKiaLeo15,EC:PasSeeash17}, the protocol execution proceeds in ``rounds'' with inputs provided by an environment program denoted by \Z to parties that execute the protocol $\Pi$.
+%
+The adversary \adv is ``adaptive,'' and allowed to take control of parties on the fly, as well as ``rushing,'' meaning that in any given round the adversary gets to observe honest parties' actions before deciding how to react.
+%
+The diffusion functionality is similar to those in \cite{EC:GarKiaLeo15,EC:PasSeeash17}; it allows order of messages to be controlled by \adv, i.e., there is no atomicity guarantees in message broadcast, and, furthermore, the adversary is allowed to spoof the source information on every message (i.e., communication is not authenticated).
+%
+\adv can inject messages for selective delivery but cannot change the contents of the honest parties' messages nor prevent them from being delivered beyond \delay rounds of delay — a functionality parameter.
+%
+The precise value of \delay will be unknown to the protocol and hence protocol participants will not use \delay as a parameter to select or filter the messages.
+
+The environment program \Z determines the protocol execution; it creates and interacts with other instances of programs at the discretion of a control program $C$.
+%
+Following \cite{EPRINT:Canetti00}, $(\Z, C)$ forms of \emph{a system of interactive Turing machines} (ITM's).
+%
+The only instances allowed by $C$ are those of the protocol program $\Pi$, an adversary \adv.
+%
+These are called ITI's (interactive Turing Machines Instances).
+%
+We refer to \cite{EPRINT:Canetti00} for further details on the mechanics of the model.
+%
+The only additional feature that is relevant to our setting is that we assume each instance is initialized with a special Boolean flag denoted as \texttt{isAlert} which is set to \false upon initialization.
+
+\paragraph{Clock functionality.}
+%
+We adopt \funcClock (cf. \cite{TCC:KMTZ13}) to model synchronous processors.
+%
+By interacting with \funcClock, parties are aware that they proceed in synchronized rounds.
+
+\input{functionalities/global-clock}
+
+\paragraph{Random oracle functionality.}
+%
+We model the hash function $H(\cdot)$ to generate PoW as a random oracle \funcRO.
+%
+Note that with regards to bounding access to real-world resources, functionality \funcRO as defined fails to limit the adversary on making a certain number of queries per round.
+%
+Hence, following~\cite{C:BMTZ17,EC:GKOPZ20} we adopt a functionality wrapper \wrapper{\funcRO} that wraps the corresponding resource to capture such restrictions.
+
+\input{functionalities/random-oracle}
+
+\paragraph{Diffusion functionality.}
+%
+We model the diffusion network by \funcDiffuse \cite{C:BMTZ17}.
+%
+Note that we present $\funcDiffuse^\delay$ which is parameterized by the network delay \delay, and the asynchronous variant ($\funcDiffuse^{\mathsf{async}}$) can be easily derived by putting no \delay-bound restrictions when adding adversarial delays.
+
+By convention, different types of messages are diffused by different functionalities, and we write $\funcDiffuse^{\mathsf{tx}}$ to denote the network for transactions.
+%
+Further, $\funcDiffuse^{\mathsf{tx}, \txDelay}$ ($\funcDiffuse^{\mathsf{tx}, \mathsf{async}}$ resp.) denotes the \txDelay-bounded (asynchronous resp.) transaction diffusion network.
+
+\input{functionalities/diffuse}
+
+\paragraph{Dynamic participation.}
+%
+In order to describe the protocol execution in a more realistic fashion, following the treatment in \cite{CCS:BGKRZ18}, we classify protocol participants into different types in \cref{table:dynamic-participation}.
+
+\begin{tabularx}{\textwidth}{Y Y Y}
+    \toprule
+     & \multicolumn{2}{c}{\textbf{Basic types of \textit{honest} parties}}
+    \\
+    \textbf{Resource}
+     & \textbf{Resource unavailable}
+     & \textbf{Resource available}
+    \\ \midrule
+    random oracle \funcRO
+     & \emph{stalled}
+     & \emph{operational}
+    \\
+    network \funcDiffuse
+     & \emph{offline}
+     & \emph{online}
+    \\
+    clock \funcClock
+     & \emph{time-unaware}
+     & \emph{time-aware}
+    \\
+    synchronized state
+     & \emph{desynchronized}
+     & \emph{synchronized}
+    \\ \bottomrule
+    
+    \caption{A classification of protocol participants.}
+    \label{table:dynamic-participation}
+\end{tabularx}
+
+
+Consider a party \party at a given point of the protocol execution, we say
+%
+(i) \party is \emph{operational} if \party is registered with the random oracle, and \emph{stalled} otherwise;
+%
+(ii) \party is \emph{online} if \party is registered with the network, and \emph{offline} otherwise;
+%
+(iii) \party is \emph{time-aware} if \party is registered with the global clock, and \emph{time-unaware} otherwise;
+%
+and (iv) \party is \emph{synchronized} if \party has been participated in the protocol for sufficiently long time and it holds a chain that shares a common prefix with other \emph{synchronized} parties, and \emph{desynchronized} otherwise.
+
+We define \emph{alert} parties based on the classification above.
+%
+In short, alert parties are those who have access to all the resources and are synchronized. They are the core set of parties to carry out the protocol.
+
+\begin{equation*}
+    alert \defeq operational \wedge online \wedge time\text{-}aware \wedge synchronized.
+\end{equation*}
+
+In addition, we define \emph{active} parties to depict parties including all that are alert, adversarial or time-unaware.
+
+\begin{equation*}
+    active \defeq alert \vee adversarial \vee time\text{-}unaware
+\end{equation*}
+
+We put some restriction on the environment's power to fluctuate the number of \emph{alert} parties.
+%
+Suppose \Z with fixed coins produces a sequence of parties $h_r$ where $r$ ranges over all rounds of the execution. We define the following property (cf. \cite{EPRINT:GarKiaLeo20}):
+%
+\begin{definition} \label{def:respecting-env}
+    For $\gamma \in \mathbb{R}^+$ we call $(h_r)_{r \in [0, B)}$, where $B \in \mathbb{N}$, $(\gamma, s)$-respecting if for any set $S \subseteq [0, B)$ of at most $s$ consecutive integers, $\max_{r \in S} h_r \le \gamma \cdot \min_{r \in S} h_r$.
+\end{definition}
+
+We say that \Z is $(\gamma, s)$-respecting if for all \adv and coins for \Z and \adv the sequence of \emph{alert} parties $h_r$ is $(\gamma, s)$-respecting.
+%
+Note that this respecting environment now ties closer to the dynamic participation and applies \cref{def:respecting-env} on the set of alert parties (which is slightly different from \cite{C:GarKiaLeo17,EPRINT:GarKiaLeo20}).
+
+\paragraph{The dynamic bounded-delay setting.}
+%
+In each round, the number of alert parties that are active in the protocol is denoted by $h_r$.
+%
+Determining $h_r$ can only be done by examining the view of all alert parties and is not a quantity that is accessible to any of the honest parties individually.
+%
+The number of ``corrupt'' parties controlled by \adv in a round $r$ is similarly denoted by $t_r$.
+
+Parties, when activated, are able to read their input tape \textsc{Input()} and communication tape \textsc{Receive()} from the diffusion functionality.
+%
+If a party finds that its \texttt{isAlert} flag is \false, it enters a ``bootstrapping'' mode where it will diffuse a discovery message and synchronize.
+%
+When the synchronization phase terminates, the party will set its \texttt{isAlert} flag to \true and after this point it will be counted among the alert parties.
+%
+An honest party goes ``offline'' when it misses a round.
+%
+To record this action, whenever this happens we assume that the party's \texttt{isAlert} flag is set to \false (in particular this means that a party is aware that it went offline; note, however, that the party does not need to report it to anyone).
+%
+Also observe that parties are unaware of the set of activated parties.
+%
+As in previous works (e.g., \cite{EC:GarKiaLeo15}), we assume, without loss of generality, that each honest party has the same computational power.
