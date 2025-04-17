@@ -1,0 +1,39 @@
+\begin{cccProtocol}
+    {\TaxisWL-$\mathsf{MiningProcedure}$}
+    {mining-procedure}
+    {The mining procedure of \TaxisWL.}
+
+    \begin{algorithmic}[1]
+        \State{Fetch information from \funcDiffuse and $\funcDiffuse^{\mathsf{tx}, \txDelay}$ and get new chains $(\chain_1, \ldots, \chain_M)$, new transactions $(\tx_1, \ldots, \tx_i)$ and new profile blocks $(\PB_1, \ldots, \PB_j)$}
+
+        \State{Set $\mathtt{buffer_\PB} \gets \mathtt{buffer_\PB} \concat (\PB_1, \ldots, \PB_j)$}
+
+        \State{Set $\mathtt{localProfile} \gets \mathtt{localProfile} \concat ( \tx_1, \ldots, \tx_i )$} \label{code:mining-profiles}
+
+        \State{$\chainLocal \gets \mathsf{maxvalid}(\chainLocal, \chain_1, \ldots, \chain_M)$}
+
+        \State{$\mathtt{LBContent} \gets$ (valid) profile blocks in $\mathtt{buffer_\PB}$ that are not mined in \chainLocal}
+        \State{$\mathtt{PBContent} \gets \mathtt{localProfile}$ \Comment{Remove a prefix to save space.}}
+
+        \State{Set $h' \gets H(\chainHead{\chainLocal^{\lceil k}})$ and $h \gets H(\chainHead{\chainLocal})$}
+
+        \State{Set $\mathtt{st}_{\LB} \gets \mathsf{MerkleTree}(\mathtt{LBContent})$ and $\mathtt{st}_{\PB} \gets \mathsf{MerkleTree}(\mathtt{PBContent})$}
+
+        \State{$u \gets \mathsf{H}(ctr, h, h', \round, \mathtt{st}_{\LB}, \mathtt{st}_{\PB})$}
+
+        \If{$u < T_\LB$}
+        \State{Set $\LB \gets \langle ctr, h, h', \round, \mathtt{st}_{\LB}, \mathtt{st}_{\PB} \rangle$ and $\chainLocal \gets \chainLocal \concat \LB$}
+
+        \State{Diffuse $\chainLocal, \mathtt{LBContent}$}
+
+        \EndIf
+
+        \If{$\stringRev{u} < T_\PB$}
+        \State{Set $\PB \gets \langle ctr, h, h', \round,  \mathtt{st}_{\LB}, \mathtt{st}_{\PB} \rangle$}
+
+        \State{Diffuse $\PB, \mathtt{PBContent}$}
+        \EndIf
+
+        \State{$ctr \gets ctr + 1$}
+    \end{algorithmic}
+\end{cccProtocol}
