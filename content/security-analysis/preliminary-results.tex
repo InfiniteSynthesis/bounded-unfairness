@@ -129,56 +129,7 @@ We are also interested in some martingale inequalities (cf.~\cite{C:GarKiaLeo17}
 %
 We summaries all the protocol parameters in \cref{table:protocol-params}.
 
-\begin{tabularx}{\textwidth}{c  X }
-    \toprule
-    \textbf{Parameter}
-     & \textbf{Description}
-    \\ \midrule
-    $h_r$
-     & The number of alert parties mining in round $r$.
-    \\ \midrule
-    $t_r$
-     & The number of corrupted parties mining in round $r$.
-    \\ \midrule
-    $\delta$
-     & Advantage of honest parties ($t_r < (1 - \delta) h_r$ for all $r$).
-    \\ \midrule
-    $f$
-     & The probability at least one alert party out of $n_0$ computes a block for target $T_0$.
-    \\ \midrule
-    $m$
-     & The length of an epoch in number of blocks.
-    \\ \midrule
-    $\delay$
-     & Network delay in rounds.
-    \\ \midrule
-    $\kappa$
-     & Security parameter; length of the hash function output.
-    \\ \midrule
-    $(\gamma, s)$
-     & Respecting environment parameter.
-    \\ \midrule
-    $\epsilon$
-     & Quality of concentration of random variables.
-    \\ \midrule
-    $\lambda$
-     & Related to the properties of the protocol.
-    \\ \midrule
-    $\varphi$
-     & Order-fairness parameter (cf. \cref{def:varphi-tdbw-order-fairness}).
-    \\ \midrule
-    $R$
-     & The recency parameter.
-    \\ \midrule
-    \PBWindowLen
-     & The length of a profile block window in number of rounds.
-    \\ \midrule
-    $\varDelta_{\mathsf{timeout}}$
-     & The timeout parameter to process cycles that span for a long time.
-    \\ \bottomrule
-    \caption{Summary of \Taxis parameters.}
-    \label{table:protocol-params}
-\end{tabularx}
+\input{tables/taxis-parameters}
 
 In order to get desired convergence, we consider a sufficiently long consecutive sequence of at least
 %

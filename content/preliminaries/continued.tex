@@ -59,35 +59,7 @@ Further, $\funcDiffuse^{\mathsf{tx}, \txDelay}$ ($\funcDiffuse^{\mathsf{tx}, \ma
 %
 In order to describe the protocol execution in a more realistic fashion, following the treatment in \cite{CCS:BGKRZ18}, we classify protocol participants into different types in \cref{table:dynamic-participation}.
 
-\begin{tabularx}{\textwidth}{Y Y Y}
-    \toprule
-     & \multicolumn{2}{c}{\textbf{Basic types of \textit{honest} parties}}
-    \\
-    \textbf{Resource}
-     & \textbf{Resource unavailable}
-     & \textbf{Resource available}
-    \\ \midrule
-    random oracle \funcRO
-     & \emph{stalled}
-     & \emph{operational}
-    \\
-    network \funcDiffuse
-     & \emph{offline}
-     & \emph{online}
-    \\
-    clock \funcClock
-     & \emph{time-unaware}
-     & \emph{time-aware}
-    \\
-    synchronized state
-     & \emph{desynchronized}
-     & \emph{synchronized}
-    \\ \bottomrule
-    
-    \caption{A classification of protocol participants.}
-    \label{table:dynamic-participation}
-\end{tabularx}
-
+\input{tables/dynamic-availability}
 
 Consider a party \party at a given point of the protocol execution, we say
 %
