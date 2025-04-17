@@ -1,0 +1,21 @@
+\begin{cccAlgorithm}
+    {\textsc{DirectedBandwidth}}
+    {directed-bandwidth}
+    {Solving the directed-bandwidth problem.}
+
+    \textsc{Input:} Graph $G = (V, E)$.
+
+    \begin{algorithmic}[1]
+        \State{Set $\DBW(G) = -\infty$}
+        \For{$R \subset E$}
+        \State{Set $G' = (V, R)$}
+        \State{Solve \textsc{DAG-Bandwidth} and get $\mathtt{DAG}\text{-}\mathtt{BW}(G'), \orderOutput_{\mathtt{DAG}}$.}
+        \Comment{Run \textsc{Bucketing} and \textsc{Ordering}}
+        \If{$\mathtt{DAG}\text{-}\mathtt{BW}(G') > \DBW(G)$}
+        \State{$\DBW(G) \gets \mathtt{DAG}\text{-}\mathtt{BW}(G'), \orderOutput \gets \orderOutput_{\mathtt{DAG}}$}
+        \EndIf
+        \EndFor
+    \end{algorithmic}
+
+    \textsc{Output:} $\DBW(G), \orderOutput$.
+\end{cccAlgorithm}

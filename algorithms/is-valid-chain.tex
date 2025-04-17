@@ -1,0 +1,40 @@
+\begin{cccAlgorithm}
+    {$\textsf{IsValidChain}(\chain, \round)$}
+    {is-valid-chain}
+    {The chain validation rule.}
+
+    \begin{algorithmic}[1]
+        \State{$r' \gets \round, \LB \gets \chainHead{\chain}$}
+        \State{$\langle ctr, h, h', r, st_{\LB}, st_{\PB} \rangle \gets \LB$}
+        \State{$h^* \gets H(ctr, h, h', r, st_{\LB}, st_{\PB})$}
+        
+        \While{$\chain \neq \varepsilon$}
+        \State{$\langle ctr, h, h', r, st_{\LB}, st_{\PB} \rangle \gets \LB$}
+        \State{$\mathsf{validLB}, \mathsf{validPB} \gets \true$}
+        
+        \LineComment{Check validity of ledger block}
+        \If{$(h^* \neq H(\LB)) \vee (h^* \ge T) \wedge (ctr \ge 2^{32}) \vee (r \ge r')$}
+        \State{$\mathsf{validLB} \gets \false$}
+        \EndIf
+        
+        \LineComment{Check validity of profile blocks in \LB}
+        \For{$\PB \in \LB$}
+        \State{$\LB' \gets $ the last ledger block s.t. $\timestamp{\LB} \le \timestamp{\PB}- k$}
+        \If{$\timestamp{\PB} \ge \timestamp{\LB} \vee h' \neq H(\LB') \vee \timestamp{\PB} \ge \timestamp{\LB'} + R \vee H(\PB) \ge T_\PB$}
+        \State{$\mathsf{validPB} \gets \false$}
+        \EndIf
+        \EndFor
+        
+        \If{$\mathsf{validLB} \wedge \mathsf{validPB} = \true$}
+        \State{$r' \gets r, h^* \gets h$}
+        \State{Remove the rightmost block in \chain}
+        \State{$\LB \gets \chainHead{\chain}$}
+        \Else
+        \State{\Return \false}
+        \EndIf
+        
+        \EndWhile
+        
+        \State{\Return \true}
+    \end{algorithmic}
+\end{cccAlgorithm}

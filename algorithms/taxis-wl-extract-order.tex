@@ -1,0 +1,50 @@
+\begin{cccAlgorithm}
+    {\TaxisWL-$\mathsf{ExtractTransactionOrder}(\chainLocal, \round)$}
+    {taxiswl-extract-transaction-order}
+    {Extracting transaction order in \TaxisWL.}
+
+    \begin{algorithmic}[1]
+        \State{Initialize \txpool and graph $G$ to be empty.}
+        \For{$\tx \in \PB \in \LB \in \chainLocal^{\lceil K + k}$}
+        \State{Add $\tx$ to $\txpool$ and $v_\tx$ to $G$}
+        \EndFor
+
+        \LineComment{Build graph}
+
+        \For{$\tx \in \txpool$}
+        \State{$\PB_\tx \gets \{\PB \mathbin| \PB \in \LB$ s.t. $\timestamp{\tx} \le \timestamp{\LB} < \timestamp{\tx} + K\}$ }
+        \For{$\tx' \in \PB \in \PB_\tx$}
+        \If{majority of $\PB_\tx$ report $\tx' \before \tx$}
+        \If{$(\tx', \tx) \in G$}
+        \State{Mark $(\tx', \tx)$ as solid}
+        \Else
+        \State{Add edge $(\tx', \tx)$ to $G$ and mark as dotted}
+        \EndIf
+        \Else
+        \If{$(\tx, \tx') \in G$}
+        \State{Mark $(\tx, \tx')$ as solid}
+        \Else
+        \State{Add edge $(\tx, \tx')$ to $G$ and mark as dotted}
+        \EndIf
+        \EndIf
+        \EndFor
+        \EndFor\label{code:end-of-build-graph}
+
+        \LineComment{Compute order.}
+        \State{Compute the condensation graph $G^*$ of $G$.} \Comment{Using solid edges only}
+        \State{Let $V_{\mathsf{source}}$ be the set of vertices in $G$ s.t. $v$ is a source vertex in $G^*$ and all transactions in $v$ are in \txpool.}
+
+        \While{$V_{\mathsf{source}} \neq \emptyset$}
+
+        \State{Let $v$ be the vertex in $V_{\mathsf{source}}$ with earliest \PBWindowLen-time-window}
+        \State{$v_\SCC \gets$ component in $G$ that corresponds to $v$ in $G^*$}
+        \State{Run \cref{algorithm:directed-bandwidth} on $v_\SCC$ and get transaction order $l$}
+        \State{$\ledger = \ledger \concat l$}
+
+        \State{Remove $v$ from $G^*$} \Comment{This yields a new $V_{\mathsf{source}}$}
+
+        \EndWhile
+    \end{algorithmic}
+
+    \textsc{Output:} ledger \ledger (a list of transactions with strict total order).
+\end{cccAlgorithm}

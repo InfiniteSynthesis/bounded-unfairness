@@ -1,0 +1,29 @@
+\begin{cccAlgorithm}
+    {\textsc{DirectedBandwidth} over $G_{\profileSet, \varphi}$}
+    {directed-bandwidth-large-cycle}
+    {Solving the directed-bandwidth problem over dependency graphs.}
+
+    \textsc{Input:} $G = (V, E)$ the graph, $\mapTimestamp: V \rightarrow
+        \mathbb{N}^+$ a mapping and $\txDelay^* \in \mathbb{N}^+$.
+
+    \begin{algorithmic}[1]
+        \State{Set $\DBW(G) = -\infty$ and $E_{\mathsf{backward}} = E$}
+        
+        \For{$(u, v) \in E$}
+        \If{$\mapTimestamp(v) - \mapTimestamp(u) \ge \txDelay^*$}
+        \State{$E_{\mathsf{backward}} \gets E_{\mathsf{backward}} \backslash (u, v)$}
+        \EndIf
+        \EndFor
+        
+        \For{$R \subset E_{\mathsf{backward}}$}
+        \State{Set $G' = (V, R)$}
+        \State{Solve \textsc{DAG-Bandwidth} and get $\mathtt{DAG}\text{-}\mathtt{BW}(G'), \orderOutput_{\mathtt{DAG}}$.}
+        \Comment{Call Saxe's algorithm.}
+        \If{$\mathtt{DAG}\text{-}\mathtt{BW}(G') > \DBW(G)$}
+        \State{$\DBW(G) \gets \mathtt{DAG}\text{-}\mathtt{BW}(G'), \orderOutput \gets \orderOutput_{\mathtt{DAG}}$}
+        \EndIf
+        \EndFor
+    \end{algorithmic}
+
+    \textsc{Output:} $\DBW(G), \orderOutput$.
+\end{cccAlgorithm}

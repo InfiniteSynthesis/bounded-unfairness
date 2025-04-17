@@ -1,0 +1,40 @@
+\begin{cccAlgorithm}
+    {\Taxis-$\mathsf{ExtractTransactionOrder}(\chainLocal, \round)$}
+    {taxis-extract-transaction-order}
+    {Extracting transaction order in \Taxis.}
+
+    \begin{algorithmic}[1]
+        \State{Extract \txpool and build graph $G$} \Comment{Same as \cref{algorithm:taxiswl-extract-transaction-order} Line~1-\ref*{code:end-of-build-graph}}
+
+        \LineComment{Compute order}
+        \State{Compute the condensation graph $G^*$ of $G$} \Comment{Using solid edges only}
+        \State{Let $V_{\mathsf{source}}$ be the set of vertices in $G$ s.t. $v$ is a source vertex in $G^*$ and all transactions in $v$ are in \txpool}
+
+        \While{$V_{\mathsf{source}} \neq \emptyset$}
+
+        \State{Let $v$ be the vertex in $V_{\mathsf{source}}$ with earliest \PBWindowLen-time-window}
+        \State{$v_\SCC \gets$ component in $G$ that corresponds to $v$ in $G^*$}
+
+        \If{$\exists v_1, v_2 \in v_\SCC$ s.t. $\timestamp{v_1} + \varDelta_{\mathsf{timeout}} \le \timestamp{v_2}$} \label{code:long-cycle-check}
+        \State{Order transactions in $v_\SCC$ in an increasing order based on their median timestamps and get $l$.}
+        \Else
+        \State{Run \cref{algorithm:directed-bandwidth} on $v_\SCC$ and get transaction order $l$}
+        \EndIf
+        \State{$\ledger = \ledger \concat l$}
+
+        \State{Remove $v$ from $G^*$} \Comment{This yields a new $V_{\mathsf{source}}$}
+        \EndWhile
+
+        \LineComment{Run fallback if a cycle lasts for long}
+        \State{Let $V_{\mathsf{unconfirmed}}$ denote all vertices that remains in the graph}
+        \For{$v \in V_{\mathsf{unconfirmed}}$}
+        \State{$v_\SCC \gets$ component in $G$ that corresponds to $v$ in $G^*$}
+        \If{$\exists v' \in v_\SCC$ s.t. $\timestamp{v'} \le \round - (K + k + \varDelta_{\mathsf{timeout}})$} \label{code:fallback-begin}
+        \State{Order vertices in $v_\SCC$ in an increasing order based on their median timestamps and get a prefix $l$ up to $v'$}
+        \State{$\ledger = \ledger \concat l$}
+        \EndIf \label{code:fallback-end}
+        \EndFor
+    \end{algorithmic}
+
+    \textsc{Output:} a list of transactions \ledger with strict total order.
+\end{cccAlgorithm}
