@@ -33,7 +33,7 @@ For a transaction \tx, its median timestamp $\med(\tx)$ is computed on the times
 %
 Note that since parties will agree on \tx's timestamp vector, they will also agree on $\med(\tx)$; and, taking the median guarantees that $\med(\tx)$ falls in the \txDelay-dissemination time window with \tx, thus the results in \cref{thm:dbw-timestamp-order} applies.
 
-In addition, when tracing the previous dependency graphs, \Taxis will be able to detect those large cycles by carefully comparing the beginning point of $K$-time windows among all transactions in the cycle, so that it will process them using the same fallback mechanism (this guarantees consistency).
+In addition, when tracing the previous dependency graphs, \Taxis will be able to detect those large cycles by carefully comparing the beginning point of \PBWindowLen-time windows among all transactions in the cycle, so that it will process them using the same fallback mechanism (this guarantees consistency).
 
 \input{algorithms/taxis-extract-order}
 

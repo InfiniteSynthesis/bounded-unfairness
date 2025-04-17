@@ -39,7 +39,7 @@ We model the hash function $H(\cdot)$ to generate PoW as a random oracle \funcRO
 %
 Note that with regards to bounding access to real-world resources, functionality \funcRO as defined fails to limit the adversary on making a certain number of queries per round.
 %
-Hence, following~\cite{C:BMTZ17,EC:GKOPZ20} we adopt a functionality wrapper \wrapper{\funcRO} that wraps the corresponding resource to capture such restrictions.
+Hence, following~\cite{C:BMTZ17,EC:GKOPZ20} we adopt a functionality wrapper $\mathcal{W}(\funcRO)$ that wraps the corresponding resource to capture such restrictions.
 
 \input{functionalities/random-oracle}
 

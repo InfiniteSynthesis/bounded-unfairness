@@ -11,7 +11,7 @@ Specifically, $D^\tx_r$ argues for the median timestamp of \tx and $D^{\tx, \tx'
 %
 We equip the typical execution (see \cref{def:typical-execution}(b)) with lower bounds on $D^{\varphi, \tx}_r$ ($D^{\tx \before^\varphi \tx'}_r$, resp.) as well.
 %
-On the other hand, we quantify the length of a $K$-time-window (cf. \cref{eq:window-length}) and introduce a new restriction (cf. Condition~\cref{condition:order-fairness-param}) that lower-bounds $\varphi$ so as to get desired properties on profile blocks.
+On the other hand, we quantify the length of a \PBWindowLen-time-window (cf. \cref{eq:window-length}) and introduce a new restriction (cf. Condition~\cref{condition:order-fairness-param}) that lower-bounds $\varphi$ so as to get desired properties on profile blocks.
 
 Our probability space is over all executions of length at most some polynomial in $\kappa$ and $\lambda$ and we denote by \Pr the probability measure of
 this space.
@@ -45,17 +45,17 @@ Moreover, the initial target $T_0$ implies in our model an initial estimate of t
 \begin{definition} \label{def:security-predicate}
     For a round $r$, let:
     \begin{cccItemize}[nosep]
-        \item $\textsc{GoodChains}(r) \triangleq$ ``For all $u \le r$, every chain in $\setChains_u$ is good.''
+        \item $\textsc{GoodChains}(r) \triangleq$ ``For all $u \le r$, every chain in $\mathcal{S}_u$ is good.''
 
         \item $\textsc{GoodRound}(r) \triangleq$ ``All rounds $u \le r$ are good.''
 
-        \item $\textsc{NoStaleChains}(r) \triangleq$ ``For all $u \le r$, there are no stale chains in $\setChains_u$.''
+        \item $\textsc{NoStaleChains}(r) \triangleq$ ``For all $u \le r$, there are no stale chains in $\mathcal{S}_u$.''
 
-        \item $\textsc{Accurate}(r) \triangleq$ ``For all $u \le r$,  all chains in $\setChains_u$ are accurate.''
+        \item $\textsc{Accurate}(r) \triangleq$ ``For all $u \le r$,  all chains in $\mathcal{S}_u$ are accurate.''
 
-        \item $\textsc{Duration}(r) \triangleq$ ``For all $u < r$ and $\chain \in \setChains_u$, the duration $\varLambda$ of any epoch in \chain satisfies $\frac{1}{2(1 + \delta)\gamma^2} \cdot \frac{m}{f} \le \varLambda \le 2(1 + \delta)\gamma^2 \cdot \frac{m}{f}$.''
+        \item $\textsc{Duration}(r) \triangleq$ ``For all $u < r$ and $\chain \in \mathcal{S}_u$, the duration $\varLambda$ of any epoch in \chain satisfies $\frac{1}{2(1 + \delta)\gamma^2} \cdot \frac{m}{f} \le \varLambda \le 2(1 + \delta)\gamma^2 \cdot \frac{m}{f}$.''
 
-        \item $\textsc{CommonPrefix}(r) \triangleq$ ``For all $u < r$ and $\chain, \chain' \in \setChains_u$, $\chainHead{\chain \cap \chain'}$ was created after round $u - \ell - 2\delay$.''
+        \item $\textsc{CommonPrefix}(r) \triangleq$ ``For all $u < r$ and $\chain, \chain' \in \mathcal{S}_u$, $\chainHead{\chain \cap \chain'}$ was created after round $u - \ell - 2\delay$.''
     \end{cccItemize}
 \end{definition}
 

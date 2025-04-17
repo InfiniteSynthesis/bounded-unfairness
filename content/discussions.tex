@@ -59,7 +59,7 @@ While this problem stems from the nature of permissionless settings and is thus 
 
 One route is to restrict the adversarial power on registering / de-registering parties.
 %
-I.e., \adv is allowed to de-register at most $\tau$ fraction of honest parties during any time window of length $K$, but $\tau$ should remain sufficiently small with respect to $K$ so that when a transaction is received by sufficiently many parties earlier than another, both could be continuously reported.
+I.e., \adv is allowed to de-register at most $\tau$ fraction of honest parties during any time window of length \PBWindowLen, but $\tau$ should remain sufficiently small with respect to \PBWindowLen so that when a transaction is received by sufficiently many parties earlier than another, both could be continuously reported.
 
 Alternatively, we could extend our dynamic participation model (\cref{subsec:protocol-execution-model}) to let parties ``bootstrap'' to collect transactions before they become alert.
 %

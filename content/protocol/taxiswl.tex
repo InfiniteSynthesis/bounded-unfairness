@@ -71,19 +71,19 @@ As protocol execution proceeds, local chains held by honest parties will share a
 %
 Protocol participants will extract a transaction pool \txpool in their common prefix by selecting those transactions that have been reported for sufficiently long time.
 %
-More specifically, in order for a transaction \tx to be selected, there should exist a $K$-time-window of \tx, starting at time $t$ such that (i) $t$ is the timestamp of the earliest ledger block that includes a profile block \PB reporting \tx; and (ii) this $K$-time-window should be fully included in the settled blockchain --- i.e., at round \round a party only considers time window that starts before round $\round - k - K$.
+More specifically, in order for a transaction \tx to be selected, there should exist a \PBWindowLen-time-window of \tx, starting at time $t$ such that (i) $t$ is the timestamp of the earliest ledger block that includes a profile block \PB reporting \tx; and (ii) this \PBWindowLen-time-window should be fully included in the settled blockchain --- i.e., at round \round a party only considers time window that starts before round $\round - k - \PBWindowLen$.
 
 Transactions in \txpool are then added to a dependency graph $G$ as vertices.
 %
-Regarding rules to add edges, for each transaction \tx we care about the profile blocks in its $K$-time-window: if the majority of these profile blocks report $\tx' \before \tx$, then we add a \emph{dotted} edge $(\tx', \tx)$ to $G$ (when $\tx'$ does not exist in $G$, a vertex of $\tx'$ is added).
+Regarding rules to add edges, for each transaction \tx we care about the profile blocks in its \PBWindowLen-time-window: if the majority of these profile blocks report $\tx' \before \tx$, then we add a \emph{dotted} edge $(\tx', \tx)$ to $G$ (when $\tx'$ does not exist in $G$, a vertex of $\tx'$ is added).
 %
 Note that a dotted edge $(\tx', \tx)$ does not confirm the preference $\tx' \before \tx$ in $G$.
 %
-In order to count the edge in the subsequent computation, we need to wait for the $K$-time-window of $\tx'$ and see if the majority of those profile blocks report $\tx \before \tx'$.
+In order to count the edge in the subsequent computation, we need to wait for the \PBWindowLen-time-window of $\tx'$ and see if the majority of those profile blocks report $\tx \before \tx'$.
 %
 When this holds, we update the dotted edge to \emph{solid} (all the subsequent computations on $G$ only consider solid edges).
 %
-The reason for designing this two-phase edge adding rule is because, for those transaction pairs such that no $\varphi$-preference holds, the adversary might be able to report conflicting orders in the corresponding $K$-time-windows\footnote{When an edge from $\tx'$ to \tx exist, \tx will not get confirmed into the ledger. Also note that, with overwhelming probability, solid edges will appear on those transaction pairs with $\varphi$-preference. For details, see the protocol analysis.}.
+The reason for designing this two-phase edge adding rule is because, for those transaction pairs such that no $\varphi$-preference holds, the adversary might be able to report conflicting orders in the corresponding \PBWindowLen-time-windows\footnote{When an edge from $\tx'$ to \tx exist, \tx will not get confirmed into the ledger. Also note that, with overwhelming probability, solid edges will appear on those transaction pairs with $\varphi$-preference. For details, see the protocol analysis.}.
 
 After constructing the dependency graph $G$, parties can linearize the transactions on top of $G$.
 %
@@ -97,7 +97,7 @@ Let $V_{\mathsf{source}}$ denote the set of all source vertices in $G^*$ such th
 %
 If $V_{\mathsf{source}}$ is empty then parties terminate and output the final ledger \ledger.
 %
-Otherwise, they select $v \in V_{\mathsf{source}}$ such that the starting time of $v$'s associated $K$-time-window is the earliest among $V_{\mathsf{source}}$ (if a vertex in $G^*$ represents a SCC in $G$, we choose the earliest time window in that SCC).
+Otherwise, they select $v \in V_{\mathsf{source}}$ such that the starting time of $v$'s associated \PBWindowLen-time-window is the earliest among $V_{\mathsf{source}}$ (if a vertex in $G^*$ represents a SCC in $G$, we choose the earliest time window in that SCC).
 %
 Then, if $v$ represents a single vertex in $G$, parties append the corresponding transaction to \ledger directly; otherwise, they run \cref{algorithm:directed-bandwidth} to extract the bandwidth-optimal order $l$ on $v_\SCC$ (i.e., the component in the original graph that condenses to $v$ in $G^*$) and append $l$ to \ledger.
 %
@@ -105,7 +105,7 @@ After processing $v$, we remove it from $G^*$ and this yields a new source verte
 
 We present the full serialization code in \cref{algorithm:taxiswl-extract-transaction-order}.
 %
-Note that we slightly abuse the notation of block timestamp and we write $\timestamp{\tx}$ as the beginning time of $K$-time-window associated with \tx --- i.e., it is the timestamp of the first ledger block \LB that includes a profile block with \tx.
+Note that we slightly abuse the notation of block timestamp and we write $\timestamp{\tx}$ as the beginning time of \PBWindowLen-time-window associated with \tx --- i.e., it is the timestamp of the first ledger block \LB that includes a profile block with \tx.
 
 \input{algorithms/taxis-wl-extract-order}
 

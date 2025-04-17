@@ -1,0 +1,263 @@
+\RequirePackage{authblk,orcidlink}
+\RequirePackage{xspace}
+\RequirePackage{amsmath,amssymb,amsfonts,amsthm,thmtools}
+\RequirePackage{hyperref}
+\RequirePackage{enumitem,marvosym}
+\RequirePackage[most]{tcolorbox}
+\RequirePackage{tabularx,colortbl,ltablex,booktabs}
+\RequirePackage{algpseudocode,algorithm}
+\RequirePackage[width=\textwidth,textfont=sl]{caption}
+\RequirePackage[capitalize,noabbrev]{cleveref}
+
+\providecommand*\email[1]{\href{mailto:#1}{\texttt{#1}}}
+\renewcommand{\paragraph}[1]{\medskip\noindent\textbf{#1}}
+\newcommand{\ignore}[1]{}
+
+\makeatletter
+\AddToHook{cmd/appendix/before}{\def\cref@section@alias{appendix}}
+\AddToHook{cmd/appendix/before}{\def\cref@subsection@alias{appendix}}
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ensuremath environment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\mathEnv}[1]{\ensuremath{#1}\xspace}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% math
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\EX}{\mathEnv{\mathbb{E}}}
+\newcommand*{\Var}{\mathEnv{\mathbf{Var}}}
+\renewcommand*{\Pr}{\mathEnv{\mathbf{Pr}}}
+\newcommand*{\med}{\mathEnv{\mathsf{med}}}
+\newcommand*{\concat}{\mathEnv{\mathbin\Vert}}
+\newcommand*{\defeq}{\mathEnv{\overset{\mathrm{def}}{=}}}
+
+\newcommand*{\true}{\mathEnv{\mathsf{true}}}
+\newcommand*{\false}{\mathEnv{\mathsf{false}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% theorem style
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% bold note for plain and definition theoremstyle
+\makeatletter
+\def\th@plain{\thm@notefont{}\itshape}
+\def\th@definition{\thm@notefont{}\normalfont}
+\makeatother
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{fact}{Fact}
+\newtheorem{claim}{Claim}
+\newtheorem*{claim*}{Claim}
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+\newtheorem{example}{Example}
+
+\Crefname{lemma}{Lemma}{Lemmas}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% complexity class
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\bigO}{\mathEnv{\mathcal{O}}}
+\newcommand*{\poly}{\mathEnv{\mathsf{poly}}}
+\newcommand*{\polylog}{\mathEnv{\mathsf{polylog}}}
+\newcommand*{\negl}{\mathEnv{\mathsf{negl}}}
+\newcommand*{\NP}{\mathEnv{\mathsf{NP}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% party/adv notations
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\party}{\mathEnv{\mathsf{P}}}
+\newcommand*{\adv}{\mathEnv{\mathcal{A}}}
+\newcommand*{\delay}{\mathEnv{\varDelta}}
+\newcommand*{\round}{\mathEnv{\mathtt{r}}}
+
+\newcommand*{\partyset}{\mathEnv{\mathcal{P}}}
+\newcommand*{\honestPartySet}{\mathEnv{\mathcal{H}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% blockchain
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\block}{\mathEnv{\mathcal{B}}}
+\newcommand*{\chain}{\mathEnv{\mathcal{C}}}
+\newcommand*{\chainLocal}{\mathEnv{\chain_{\mathsf{loc}}}}
+\newcommand*{\ledger}{\mathEnv{\mathcal{L}}}
+
+\newcommand*{\tx}{\mathEnv{\mathtt{tx}}}
+\newcommand*{\txDelay}{\mathEnv{\varDelta_{\mathrm{tx}}}}
+
+\newcommand{\chainHead}[1]{\mathEnv{\mathrm{head}(#1)}}
+\newcommand{\timestamp}[1]{\mathEnv{\mathsf{TS}(#1)}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% tabularx
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand{\tabularxcolumn}[1]{m{#1}}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% UC framework
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\sid}{\mathEnv{\mathrm{sid}}}
+\newcommand*{\pid}{\mathEnv{\mathrm{pid}}}
+\newcommand*{\Z}{\mathEnv{\mathcal{Z}}}
+
+\newcommand*{\func}{\mathEnv{\mathcal{F}}}
+\newcommand*{\F}{\mathEnv{\mathcal{F}}}
+
+\newcommand*{\funcClock}{\mathEnv{\mathcal{G}_{\textsf{Clock}}}}
+\newcommand*{\funcRO}{\mathEnv{\func_{\textsf{RO}}}}
+\newcommand*{\funcDiffuse}{\mathEnv{\func_{\textsf{Diffuse}}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Profiles
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\profile}{\mathEnv{\mathsf{R}}}
+\newcommand*{\profileSet}{\mathEnv{\mathcal{R}}}
+\newcommand*{\orderOutput}{\mathEnv{\sigma}}
+
+\newcommand*{\before}{\mathEnv{\prec}}
+
+\newcommand*{\mapTimestamp}{\mathEnv{F_{\mathsf{ts}}}}
+\newcommand*{\mapTimestampSet}{\mathEnv{\mathbb{F}_{\mathsf{ts}}}}
+\newcommand*{\mapTimestampSetR}{\mathEnv{\mathbb{F}_{\mathsf{ts}, \profileSet}}}
+\newcommand*{\mapTimestampMin}{\mathEnv{F^{\mathsf{min}}_{\mathsf{ts}}}}
+
+\newcommand*{\Taxis}{\mathEnv{\mathsf{Taxis}}}
+\newcommand*{\TaxisWL}{\mathEnv{\Taxis_{\mathsf{WL}}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Graph Notations
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\DBW}{\mathEnv{\mathtt{DBW}}}
+\newcommand*{\TDBW}{\mathEnv{\mathtt{TDBW}}}
+\newcommand*{\SCC}{\mathEnv{\mathsf{SCC}}}
+
+\newcommand*{\E}{\mathEnv{\mathcal{E}}}
+\newcommand*{\txpool}{\mathEnv{\mathsf{TXPool}}}
+
+\newcommand*{\LB}{\mathEnv{\mathsf{LB}}}
+\newcommand*{\PB}{\mathEnv{\mathsf{PB}}}
+\newcommand*{\PBWindowLen}{\mathEnv{K}}
+\newcommand{\stringRev}[1]{\mathEnv{[#1]^{\mathsf{R}}}}
+
+\usetikzlibrary{backgrounds,fit}
+\tcbset{
+  cccBox/.style={
+      enhanced,
+      breakable,
+      attach boxed title to top left={yshift=-4mm,xshift=5mm},
+      coltitle=black,
+      boxed title style={colback=white},
+      colback=white,
+      top=5mm,
+      drop fuzzy shadow,
+      sharp corners,
+      fontupper=\small,
+      enlarge top by=2mm,
+      enlarge bottom by=3mm,
+      segmentation style = {solid, line width = .5mm}
+    }
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Protocol Box 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcounter{protoccolCounter}
+\setcounter{protoccolCounter}{0}
+
+\newtcolorbox[use counter=protoccolCounter]{protocolbox}[2]{
+  cccBox,
+  title={\large \textbf{Protocol} #1},
+  label=protocol:#2
+}
+
+\newcommand{\fboxfootprotocol}{}
+\newenvironment{cccProtocol}[3]{
+  \renewcommand{\fboxfootprotocol}{#3}
+  \begin{protocolbox}{#1}{#2}
+    }{
+    \tcblower
+    Protocol~{\thetcbcounter}: {\sl \fboxfootprotocol}
+  \end{protocolbox}
+}
+
+\crefname{protoccolCounter}{Protocol}{Protocols}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Algorithm Box
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcounter{algorithmCounter}
+\setcounter{algorithmCounter}{0}
+
+\newtcolorbox[use counter=algorithmCounter]{algorithmbox}[2]{
+  cccBox,
+  title={\large \textbf{Algorithm} #1},
+  label=algorithm:#2
+}
+
+\newcommand{\fboxfootalgorithm}{}
+\newenvironment{cccAlgorithm}[3]{
+  \renewcommand{\fboxfootalgorithm}{#3}
+  \begin{algorithmbox}{#1}{#2}
+    }{
+    \tcblower
+    Algorithm~{\thetcbcounter}: {\sl \fboxfootalgorithm}
+  \end{algorithmbox}
+}
+
+\crefname{algorithmCounter}{Algorithm}{Algorithms}
+
+\makeatletter
+\algnewcommand{\LineComment}[1]{\Statex\hskip\ALG@thistlm{{\color{gray}$\triangleright$ #1}}}
+\makeatother
+\algrenewcommand{\algorithmiccomment}[1]{\hfill{\color{gray} $\triangleleft$ #1}}
+\newcommand{\oneLineIf}[2]{\State{\textbf{if} #1 \textbf{then} #2}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Functionality Box
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcounter{functionalityCounter}
+\setcounter{functionalityCounter}{0}
+
+\newtcolorbox[use counter=functionalityCounter]{tboxfunctionality}[2]{
+  cccBox,
+  title={\large \textbf{Functionality} #1},
+  label=functionality:#2
+}
+
+\newcommand{\fboxfootfunctinoality}{}
+\newenvironment{cccFunctionality}[3]{
+  \renewcommand{\fboxfootfunctinoality}{#3}
+  \begin{tboxfunctionality}{#1}{#2}
+    }{
+    \tcblower
+    Functionality~{\thetcbcounter}: {\sl \fboxfootfunctinoality}
+  \end{tboxfunctionality}
+}
+
+\crefname{functionalityCounter}{Functionality}{Functionalities}
+
+\newenvironment{cccItemize}[1][]{
+  \begin{enumerate}[label=\FlatSteel, leftmargin=*, #1]
+    }{\end{enumerate}}
+
+\newenvironment{cccEnum}[1][]{
+  \begin{enumerate}[label={\arabic*.}, leftmargin=*, #1]
+    }{\end{enumerate}}
