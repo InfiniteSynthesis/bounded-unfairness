@@ -1,0 +1,45 @@
+\begin{figure}[ht]
+    \centering
+    \resizebox{.8\columnwidth}{!}{%
+        \begin{tikzpicture}
+            \node (party11) {$\party_1$};
+            \node (execution1) at ([xshift = -2em, yshift = .25em]party11.west) {$E_1$};
+            \node (tx111) at ([xshift = 2em]party11.east) {$\tx_1$};
+            \node (tx112) at ([xshift = 2em]tx111.east) {$\tx_2$};
+            \node (tx113) at ([xshift = 2em]tx112.east) {$\tx_3$};
+            \node (party12) at ([yshift = -.5em]party11.south) {$\party_2$};
+            \node (tx122) at ([xshift = 2em]party12.east) {$\tx_2$};
+            \node (tx123) at ([xshift = 2em]tx122.east) {$\tx_3$};
+            \node (tx121) at ([xshift = 20em]tx123.east) {$\tx_1$};
+            \node (party13) at ([yshift = -.5em]party12.south) {$\party_3$};
+            \node (tx133) at ([xshift = 2em]party13.east) {$\tx_3$};
+            \node (tx131) at ([xshift = 20em]tx133.east) {$\tx_1$};
+            \node (tx132) at ([xshift = 2em]tx131.east) {$\tx_2$};
+            \begin{scope}[on background layer]
+                \node[fit = (execution1) (tx132), rectangle, rounded corners, fill = gray!20] (e1scope) {};
+            \end{scope}
+
+            \node (party21) at ([yshift = -2.5em]party13.south) {$\party_1$};
+            \node (execution2) at ([xshift = -2em, yshift = .25em]party21.west) {$E_2$};
+            \node (tx211) at ([xshift = 2em]party21.east) {$\tx_1$};
+            \node (tx212) at ([xshift = 2em]tx211.east) {$\tx_2$};
+            \node (tx213) at ([xshift = 2em]tx212.east) {$\tx_3$};
+            \node (party22) at ([yshift = -.5em]party21.south) {$\party_2$};
+            \node (tx222) at ([xshift = 2em]party22.east) {$\tx_2$};
+            \node (tx223) at ([xshift = 2em]tx222.east) {$\tx_3$};
+            \node (tx221) at ([xshift = 20em]tx223.east) {$\tx_1$};
+            \node (party23) at ([yshift = -.5em]party22.south) {$\party_3$};
+            \node (tx233) at ([xshift = 2em]party23.east) {$\tx_3$};
+            \node (tx232) at ([xshift = 20em]tx233.east) {$\tx_2$};
+            \node (tx231) at ([xshift = 2em]tx232.east) {$\tx_1$};
+            \begin{scope}[on background layer]
+                \node[fit = (execution2) (tx231), rectangle, rounded corners, fill = gray!20] (e2scope) {};
+            \end{scope}
+
+            \draw[dotted] ([xshift = .2em, yshift = .5em]tx113.north east) -- ([xshift = .2em, yshift = -10em]tx113.north east) node[below] {$t$};
+            \draw[dotted] ([xshift = 12em, yshift = .5em]tx113.north east) -- ([xshift = 12em, yshift = -10em]tx113.north east) node[below] {$t + L$};
+        \end{tikzpicture}%
+    }
+    \caption{Transaction profile illustration.}
+    \label{fig:asynchronous-impossibility}
+\end{figure}
