@@ -1,0 +1,123 @@
+\subsection{Bounded Unfairness and Serialization}
+\label{subsec:bounded-unfairness-serialization}
+
+An ideal fair order \orderOutput on profiles \profileSet follows all $\varphi$-preferences in \profileSet.
+%
+I.e., for all $\tx \before^\varphi \tx'$ it holds $\orderOutput(\tx) < \orderOutput(\tx')$.
+%
+Unfortunately, this is impossible with the existence of Condorcet cycles --- $\varphi$-preferences can be cyclic and hence no \orderOutput can satisfy all of them simultaneously.
+%
+To see the simplest example, fix $\varphi = 2 / 3$ and consider three transactions $\tx_1, \tx_2, \tx_3$ and three profiles $\profile_1 = \tx_1 \before \tx_2 \before \tx_3$, $\profile_2 = \tx_2 \before \tx_3 \before \tx_1$ and $\profile_3 = \tx_3 \before \tx_1 \before \tx_2$.
+%
+We have $\tx_1 \before^\varphi \tx_2$,  $\tx_2 \before^\varphi \tx_3$ and  $\tx_3 \before^\varphi \tx_1$.
+
+Note that there is a hidden constant in $\orderOutput(\tx) < \orderOutput(\tx')$ (i.e., $\orderOutput(\tx) - \orderOutput(\tx') < 0$) to indicate the position that $\tx'$ can be placed before \tx.
+%
+A natural relaxation on standard order fairness would be to enlarge this distance to some realizable extent.
+%
+I.e., an order is fair if for all preferences $\tx \before^\varphi \tx'$, $\tx'$ is not ordered at a position that is too earlier compared with \tx.
+%
+In order to acquire a fine-grained fairness notion, we are interested in upper-bounding this distance on every pair of transactions $\tx, \tx'$ in specific transaction profiles \profileSet.
+%
+Thus we define $B$ as a function of $\profileSet, \varphi, \tx$ and $\tx'$ and require $\orderOutput(\tx) - \orderOutput(\tx') < B$.
+%
+This gives us an intuitive and parametric definition of order fairness.
+
+\begin{definition}[$(\varphi, B)$-fair-order]
+    \label{def:varphi-b-order-fairness}
+
+    A profile \orderOutput is a $(\varphi, B)$-fair-order on \profileSet if for all $\tx, \tx'$ such that $\tx \before^\varphi_\profileSet \tx'$, it holds that $\orderOutput(\tx) - \orderOutput(\tx') \le B $ where $B$ is a function of $\profileSet, \varphi, \tx$ and $\tx'$.
+\end{definition}
+
+$(\varphi, B)$-fair-order is unrealizable when $B$ is a function such that there exist \profileSet and it holds that $\forall \orderOutput, \exists (\tx, \tx'), \orderOutput(\tx) - \orderOutput(\tx') > B(\profileSet, \varphi, \tx, \tx')$.
+%
+In other words, $B$ is too ``small'' on some profiles thus no ordering could order $\tx, \tx'$ ``close enough'' as specified by $B$.
+%
+On the other hand, \cref{def:varphi-b-order-fairness} is trivial when $B$ is a function such that $\exists (\profileSet, \tx, \tx'),  B(\profileSet, \varphi, \tx, \tx') \ge m - 1$ where $m$ is the total number of transactions in \profileSet (i.e., $\tx, \tx'$ can be arranged apart for an arbitrary distance).
+% 
+The reason such a $B$ is called trivial is that, intuitively, given a set of profiles, any protocol that realizes an (unfair) order with $B = m - 1$ on one transaction pair $\tx, \tx'$ can be converted into a new protocol with fair order $B' < m - 1$ on every pairs, by simply swapping $\tx, \tx'$ in the output profile\footnote{Notice that $B = m - 1$ on a transaction pair $\tx, \tx'$ only when $\tx \before^\varphi \tx'$ and \tx is put at the last but $\tx'$ is put at the first of the output profile. By swapping $\tx, \tx'$ we get a new order with largest unfair distance strictly smaller than $m - 1$.};
+%
+moreover, as we show in \cref{thm:largest-possible-dbw}, there exists a \emph{practical} $B$ which requires distance strictly less than $m - 1$ (more precisely, $m - \log m / 2$) for every pair of transactions.
+
+\paragraph{Serialization with adversarial profiles.}
+%
+We then consider order fairness in the presence of an adversary.
+%
+Given a protocol execution, the set of honest parties \honestPartySet is well-defined and we let $h = |\honestPartySet|$ denote the number of honest parties.
+%
+We abstract the sequence of transactions received by an honest party $\party_i$ as $\profile_i$, and write $\profileSet^\honestPartySet = \langle \profile_1, \profile_2, \ldots, \profile_h \rangle$ as the honest profiles.
+%
+Regarding corrupted parties, note that they can deviate arbitrarily from the protocol thus the profile abstraction does not apply to them.
+%
+Instead, we model the adversarial manipulation as follows.
+%
+Suppose $F$ is a serialization function that takes an indefinite number of profiles as input and outputs a new profile, for every honest party we require that they output $\orderOutput = F(\profileSet)$ where $\profileSet = \langle \profileSet^\honestPartySet, \profileSet^\adv \rangle$ and $\profileSet^\adv$ is some arbitrary profiles (this models the adversarial behavior).
+%
+Note that for different honest parties, $\profileSet^\adv$ can be different to them.
+%
+Thus, the following definition does not ask for agreement --- i.e., honest parties could output different profiles as long as they are all fair orderings on $\profileSet^\honestPartySet$; it implies agreement only in the all honest setting.
+%
+\begin{definition}[Implementing a fair-order serialization]
+    \label{def:fair-order-serialization}
+
+    Given a protocol execution, an $(F, \varphi, B)$-consistent serialization event happens if and only if for any honest party $\party_i$, there exist profiles $\profileSet = \langle \profileSet^\honestPartySet, \profileSet^\adv \rangle$ such that
+    %
+    \begin{enumerate}[label=(\roman*), nosep]
+        \item $\profileSet^\honestPartySet$ is defined by the sequence of transactions received by honest parties;
+        \item $\party_i$ outputs $\orderOutput = F(\profileSet)$ and \orderOutput is a $(\varphi, B)$-fair-order on honest profiles $\profileSet^\honestPartySet$.
+    \end{enumerate}
+    %
+    A protocol serializes transactions according to $F$ with $(\varphi, B)$-order-fairness, if the $(F, \varphi, B)$-consistent serialization event happens with overwhelming probability.
+\end{definition}
+
+Notice that, in order to implement a non-trivial fair-order serialization, the adversary should not be too powerful with respect to the fairness parameter $\varphi$.
+%
+To model this we consider upper-bounding profiles in $\profileSet^\adv$ and we write $t$ as its maximum number of profiles.
+%
+Then we consider the threshold on $t$ with respect to the number of honest parties $h$ and fair-order parameter $\varphi$.
+%
+For instance, dishonest majority $(t > h)$ is infeasible with any $\varphi$.
+%
+This is because if the adversary could select more profiles than the honest, then \adv can completely dominate the $\varphi$-preferences.
+%
+In other words, the adversary can vanish any $\tx \before^\varphi \tx'$ by simply inserting profiles with the opposite order.
+
+To see how adversarial power should be restricted in terms of the fair order parameter, we prove that when $t \ge (2\varphi - 1)h$, it becomes impossible to implement non-trivial fair-order serialization.
+
+\begin{theorem} \label{thm:admissible-adversary}
+    When $t \ge (2\varphi - 1)h$, no protocol implements non-trivial fair-order serialization.
+\end{theorem}
+
+\begin{proof}
+    Suppose a protocol $\Pi$ implements non-trivial $(\varphi, B)$-fair-order serialization with $t \ge (2\varphi - 1)h$.
+    %
+    Fix $\varphi$, $h$ and $t \ge (2\varphi - 1)h$ and consider two executions $E_1, E_2$ on $\Pi$ with honest profiles $\profileSet^\honestPartySet_1$ and $\profileSet^\honestPartySet_2$ respectively.
+    %
+    Suppose there are $m$ transactions.
+    %
+    Profile $\profileSet^\honestPartySet_1 = \profile_{11}, \profile_{12}, \ldots, \profile_{1h}$ reports $\profile_{1j}(\tx_i) = i$ for all $i \in [m]$ when $j \le \lceil \varphi h \rceil$ and $\profile_{1j}(\tx_i) = m + 1 - i$ for all $i \in [m]$ when  $j \ge \lceil \varphi h \rceil + 1$.
+    %
+    I.e., $\varphi$ fraction of $\profileSet^\honestPartySet_1$ share exactly the same order while the rest share exactly the same reversed order.
+    %
+    Similarly, in profile $\profileSet^\honestPartySet_2$, $\profile_{2j}(\tx_i) = i$ for all  $i \in [m]$ when $j \le \lfloor (1 - \varphi) h \rfloor$ and $\profile_{2j}(\tx_i) = m + 1 - i$ for all $j \ge \lfloor (1 - \varphi) h \rfloor + 1$.
+
+    Since $t \ge (2\varphi - 1)h$, we have two identical profiles $\profileSet_1 = \langle \profileSet^\honestPartySet_1, \profileSet^\adv_1 \rangle$ and $\profileSet_2 =  \langle \profileSet^\honestPartySet_2, \profileSet^\adv_2 \rangle$.
+    %
+    These profiles can be constructed by, e.g., letting $(2\varphi - 1)h$ profiles in $\profileSet^\adv_1$ report an order the same as $\profile_{1h}$, letting  $(2\varphi - 1)h$ profiles in $\profileSet^\adv_2$ report an order the same as $\profile_{2h}$ and letting the rest of $\profileSet^\adv_1, \profileSet^\adv_2$ report the same order.
+
+    Notice that in $\profileSet^\honestPartySet_1$ it holds that $\forall i \in [m], \forall j > i, \tx_i \before^\varphi \tx_j$; and in $\profileSet^\honestPartySet_2$ we have $\forall i \in [m], \forall j < i, \tx_i \before^\varphi \tx_j$.
+    %
+    And since $\profileSet_1$ and $\profileSet_2$ are identical we have $F(\profileSet_1) = F(\profileSet_2)$.
+
+    Now, consider an order \orderOutput with $\orderOutput(\tx_i) = 1$ and $\orderOutput(\tx_j) = m$.
+    %
+    If $i > j$ then it implies for input $\profileSet^\honestPartySet_1$ in $E_1$, $\tx_j \before^\varphi \tx_i \implies \orderOutput(tx_j) - \orderOutput(\tx_i) = m - 1$.
+    %
+    Conversely, when $i < j$ it implies for input $\profileSet^\honestPartySet_2$ in $E_2$, $\tx_j \before^\varphi \tx_i \implies \orderOutput(tx_j) - \orderOutput(\tx_i) = m - 1$.
+    %
+    Since the similar argument works for all possible orderings, it implies that either $B(\profileSet^\honestPartySet_1, \varphi, \tx_i, \tx_j) \ge m - 1$ or $B(\profileSet^\honestPartySet_2, \varphi, \tx_i, \tx_j) \ge m - 1$, which contradicts the fact that $\Pi$ implements non-trivial fair-order serialization.
+\end{proof}
+
+We say an adversary \adv is admissible with fairness parameter $\varphi$ if it holds that $t < (2\varphi - 1)h$ and in \cref{def:fair-order-serialization} the number of profiles in $\profileSet^\adv$ are upper-bounded by $t$.
+%
+All following discussions on order fairness and transaction serialization are with respect to an admissible adversary.

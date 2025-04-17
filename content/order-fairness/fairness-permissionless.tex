@@ -1,0 +1,34 @@
+\subsection{Bounded Unfairness in a  Permissionless Environment}
+\label{subsec:order-fiarness-permissionless}
+
+In this section we show how to adapt our $(\varphi, B)$-order-fairness notion to a permissionless environment.
+%
+We highlight that the only change we have to make in this new setting is to re-define the abstraction of profiles and the ``order before by sufficiently many'' notion ($\before^\varphi$); all other definitions and arguments regarding order fairness could remain the same as above.
+
+In a permissioned network, there is a one-to-one mapping from parties to profiles.
+%
+This is because (honest) parties are online during the entire execution, thus profiles are exactly the abstract of their transaction logs at the end of the execution.
+%
+Unfortunately, this is not the case in a permissionless environment in that parties can join and leave by their will (without notifying anyone else) and (possibly) no party can eventually hold a complete transaction profile.
+
+Recall that in \cref{subsec:protocol-execution-model} we present a fine-grained classification on the type of participating parties.
+%
+Especially, alert parties are the core participants that own all resources to run the protocol and have synchronized with each other.
+%
+Under this dynamic participation model, we would like to use a profile to refer to the transaction log that an alert party holds at a specific round.
+%
+In other words, we re-consider the mapping above in the permissionless setting as follows.
+%
+Since there is no guarantee that an alert party \party at round $r$ will remain alert at any round other than $r$, we abstract the transaction log held by \party at round $r$ as a profile.
+%
+Note that these profiles can be incomplete, i.e., it may only contain a few transactions $T \subseteq \mathbb{T}$ and is a mapping $T \rightarrow [m]$ where $m = |T|$.
+%
+We say a profile is a $(\party, r)$-profile, if it corresponds to the transaction log of an alert party at round $r$.
+%
+Also note that regarding \cref{def:fair-order-serialization} with an admissible adversary, the number of profiles in $\profileSet^\adv$ should be bounded by a round-by-round fashion --- i.e., at a round $r$, $\profileSet^\adv$ can report at most $t < (2\varphi - 1) h$ profiles where $h$ is the number of $(\party, r)$-profiles.
+
+Then, we re-define the notion of ``order before by sufficiently many''.
+%
+Let $t$ be the earliest time that at least one of \tx and $\tx'$ appears in $\varphi$ fraction of the $(\party, t)$-profiles.
+%
+We say $\tx' \before^\varphi \tx$, if during a sufficiently long period of time, say, $K$ rounds, at least $\varphi$ fraction of the $(\party, r)$-profiles report $\tx' \before \tx$ where $r \in [t, t + K)$ and \party is an alert party at round $r$.

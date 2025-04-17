@@ -1,0 +1,216 @@
+\subsection{Fairness versus Liveness}
+\label{subsec:fairness-versus-liveness}
+
+We define our fair order notions based on the \emph{complete} transaction profiles.
+%
+However, during the protocol execution parties can only learn a prefix of their profiles.
+%
+In this section we discuss the inherent tension between liveness and order fairness.
+%
+Specifically, we prove that it is \emph{impossible} to satisfy all desired properties when the transaction dissemination is asynchronous (even if in the non-corrupting setting);
+%
+next, we show that, when there is an upper bound on transaction diffusion, it is \emph{possible} to have liveness with relatively weak but still useful fairness.
+
+\paragraph{Fairness in an asynchronous network.}
+%
+Suppose the transaction dissemination is asynchronous --- i.e. a transaction can appear at any position of a (complete) transaction profile.
+%
+In order to get a complete view of the transaction set that precedes a specific transaction \tx, parties may have to wait indefinitely from the first time they saw \tx.
+%
+Note that standard liveness is still applicable with asynchronous transaction diffusion network.
+%
+We have the following dilemma: if a Condorcet cycle spans for a long period of time and part of the transactions are delivered to all participants, then these transactions should appear in the (settled) output.
+%
+In such scenario, parties have to decide the order with incomplete information.
+
+We show below that the asynchronous dissemination will inevitably lead to the failure of $(\varphi, \DBW)$-order-fairness.
+%
+I.e. in order to satisfy consistency and liveness, the honest parties have to output an ordering \orderOutput on \profileSet such that $\tx \before^\varphi \tx'$ but $\orderOutput(\tx) - \orderOutput(\tx') = n - 1$ where $n$ is the total number of transactions in \profileSet.
+
+The general proof idea is to construct two executions that are indistinguishable up to some time $t + L$ ($L$ is the liveness parameter) so that parties have to output transactions up to time $t$ due to liveness.
+%
+However, the transaction profiles are different after time $t + L$ such that in the first execution it forms a Condorcet cycle but there is no cycle in the second.
+%
+We extract the possible outputs at the end of the first execution, by carefully considering consistency and liveness conditions in both executions.
+%
+We conclude that the output in the first execution must be an ordering with the worst bandwidth, which implies the failure of order fairness.
+
+\begin{theorem} \label{thm:liveness-fairness-async}
+    Suppose the transaction dissemination is asynchronous, there is no protocol that can achieve consistency, liveness and $(\varphi, \DBW)$-order-fairness.
+\end{theorem}
+
+\begin{proof}
+    We first prove this theorem for 3 transactions and $1 / 2 < \varphi \le 2 / 3$, then we show how to extend this to an arbitrary number of transactions and $\varphi$.
+
+    Consider two executions $E_1, E_2$ with transaction profiles illustrated as in \cref{fig:asynchronous-impossibility}.
+    %
+    Note that they are different only in the view of party $\party_3$ after time $t + L$.
+    %
+    First, consider execution $E_2$. We have $\tx_2 \before^\varphi \tx_3$, $\tx_3 \before^\varphi \tx_1$ and $\tx_2 \before^\varphi \tx_1$.
+    %
+    Hence at the end of the execution it should output $\tx_2 \before \tx_3 \before \tx_1$.
+    %
+    Now, consider this execution up to time $t + L$.
+    %
+    Since $\tx_3$ appears in all parties' transaction profiles and $L$ is the liveness parameter, $\tx_3$ should appear in the output at time $t + L$.
+    %
+    In addition, due to consistency parties should output $\tx_2 \before \tx_3$ at time $t + L$ in $E_2$.
+    %
+    Since the two executions are indistinguishable up to time $t + L$, in $E_1$ it should also output $\tx_2 \before \tx_3$ at time $t + L$.
+    %
+    I.e., eventually $E_1$ will output $\tx_2 \before \tx_3 \before \tx_1$ by consistency.
+    %
+    However, since $\tx_1 \before^\varphi \tx_2$ in $E_1$, this order gives the worst bandwidth 2.
+
+    \input{figures/async-profiles}
+
+    By replacing $\tx_2, \tx_3$ with a set of transactions, this proof can be extended to profiles with arbitrary $n$ transactions and output with the worst bandwidth $n - 1$.
+    %
+    And, for $\varphi > 2 / 3$ it is still feasible to construct similar profiles --- in the first execution the dependency graph is a directed cycle and by swapping the order of the last two transactions in the last profile, the second dependency graph is acyclic.
+\end{proof}
+
+
+One approach to solve this dilemma is to relax liveness (a.k.a. weak-liveness, cf. \cite{C:KZGJ20}).
+%
+I.e., standard liveness holds if there is no Condorcet cycle or a cycle does not span for long time; however, the system completely loses liveness during the ongoing of a large cycle.
+
+\begin{definition}[Weak-liveness, informal]
+    If a transaction \tx is provided to all honest parties for sufficiently many consecutive rounds, then \tx will be in the (settled) ledger eventually.
+\end{definition}
+
+Weak-liveness is not in-line with the standard BFT SMR problem; and since Condorcet cycles can chain together thus form a cycle of infinite length, it is also difficult to measure how ``weak'' this relaxation is compared with the standard definition (it is subject to the largest cycle in transaction profiles).
+%
+Hence, we turn to another direction towards the reconciliation --- we would like to achieve standard liveness as well as slightly weaker (but still non-trivial) fairness.
+
+\paragraph{Fairness with \txDelay-disseminated transactions.}
+%
+Suppose there exists an upper bound \txDelay on transaction dissemination, i.e., if $t$ is the earliest timestamp associated with \tx, then in all honest profiles it cannot be the case $\langle \tx, t' \rangle$ for $t' \ge t$.
+%
+We show that the results in \cref{thm:liveness-fairness-async} can be mitigated in this scenario.
+
+The core observation is, if a Condorcet cycle spans for a long period of time, we can perform partition on the set of transactions in this cycle, and these partitions correspond to a good partition on the dependency graph such that we can figure out an upper bound on the \textsc{DirectedBandwidth} problem.
+
+The partition rule on the dependency graph goes as follows.
+%
+Let $T_\SCC$ denote the set of all transactions in the Condorcet cycle and $G_\SCC$ its corresponding generated graph.
+%
+Consider a timestamp assignment \mapTimestamp on $T_\SCC$ and a constant $\Delta \in \mathbb{N}^+$ such that $\Delta \ge \txDelay$.
+%
+An $(\mapTimestamp, \Delta)$-partition $P$ on $T_\SCC$ is a set of non-empty subsets  $P_1,  P_2, \ldots$ such that
+%
+\[ P_i = \big\{\tx \mathbin| \tx \in T_\SCC \wedge M + (i - 1) \Delta \le \mapTimestamp(\tx) < M + i \Delta  \big\} \]
+%
+where $M = \min \{\mapTimestamp(\tx) \mathbin| \tx \in T_\SCC\}$ (i.e. the earliest timestamp among all transactions in $T_\SCC$).
+%
+Note that the union of the parts of this partition is exactly the original transaction set and the intersection of two distinct parts is empty.
+
+An $(\mapTimestamp, \Delta)$-partition on $G_\SCC$, the dependency graph of $T_\SCC$, is a set of non-empty subsets $V_1, V_2, \ldots$ such that $V_i$ is a set of vertices in $G_\SCC$ such that all corresponding transactions are in partition $P_i$.
+%
+Especially, consider the earliest timestamp assignment $\mapTimestampMin$, transaction dissemination \txDelay and its corresponding $(\mapTimestampMin, \txDelay)$-partition on $G_\SCC$.
+%
+The bandwidth of $G_\SCC$ is at most twice of the maximum number of vertices in a partition.
+
+\begin{theorem} \label{thm:dbw-partition}
+    Consider profiles \profileSet, their dependency graph $G$ and a strongly connected component $G_\SCC \in G$.
+    %
+    Consider an $(\mapTimestampMin, \txDelay)$-partition on $G_\SCC$ that corresponds to the sets $V_1, V_2, \allowbreak \ldots,$. Then it holds that
+    %
+    \[ \DBW(G_\SCC) \le 2 \max \big| V_i \big|. \]
+\end{theorem}
+
+\begin{proof}
+    We first show that the subscripts of $P_i$ are consecutive.
+    %
+    Suppose --- towards a contradiction --- there is no partition $V_i ~ (1 < i < n)$.
+    %
+    Since all transactions are \txDelay-disseminated, and the partition is a $(\mapTimestampMin, \txDelay)$-partition, for any two vertices  $u \in V_j ~ (j \le i - 1)$ and $v \in V_k ~ (k \ge i + 1)$, it holds that $\mapTimestampMin(u) + \txDelay < \mapTimestampMin(v)$.
+    %
+    I.e., in all profiles, transaction $\tx_u$ precedes $\tx_v$; hence edge $(u, v) \not\in E_\SCC$; this contradicts the fact that $G_\SCC$ is strongly connected.
+
+    Consider a vertex ordering $\orderOutput$ on $G_\SCC$ that orders vertices by a non-decreasing order on \mapTimestampMin.
+    %
+    It holds that $(\forall u \in V_j, v \in  V_k) ~ j < k \implies \orderOutput(u) < \orderOutput(v)$.
+    %
+    Since no back edge exists between two non-adjacent partitions, we have
+    %
+    \[ \DBW(G_\SCC) \le \DBW(G_\SCC, \orderOutput) \le  \max_{i \in [n - 1]} \big| V_i \big| + \big| V_{i + 1} \big| \le 2 \max \big| V_i \big|. \qedhere \]
+\end{proof}
+
+Note that it is a non-trivial task to design a protocol that allows parties to learn the earliest timestamp of each transaction without any trusted third party\footnote{We note that so far there is no protocol that can complete this task.}.
+%
+Nonetheless, a protocol can, for each transaction let parties agree on a timestamp that falls in its \txDelay dissemination time window; and such protocol can be resistant to an adversary that controls up to half of the total resources, which is compliant with any admissible adversary (for technical details on synthesizing a good timestamp, see \cref{sec:protocol}).
+%
+Thus, we consider dependency graphs with a compliant timestamp assignment $\mapTimestamp \in \mapTimestampSetR$ and we allow that the specific assignment (as long as it is compliant with \profileSet) can be chosen by the adversary.
+
+We highlight that, in this context there exist a simple ordering trick that can provide us good bandwidth.
+%
+Specifically, consider a dependency graph $G$ and an \profileSet-compliant timestamp assignment \mapTimestamp.
+%
+By sorting vertices with a non-decreasing order on \mapTimestamp (i.e., we order $u$ before $v$ if $\mapTimestamp(u) < \mapTimestamp(v)$), it yields a vertex ordering with bandwidth upper bounded by three times the maximum total number of concurrent transactions in a \txDelay time window (\cref{thm:dbw-timestamp-order}).
+%
+We highlight that this ordering approach can be done without knowing the exact upper bound (\txDelay) on transaction dissemination.
+%
+Additionally, the bandwidth of this ordering is independent of the size of the Condorcet cycle --- in other words, its performance is better on large cycles compared with small ones.
+
+\begin{theorem} \label{thm:dbw-timestamp-order}
+    Consider profiles \profileSet, its dependency graph $G$ and a strongly connected component $G_\SCC \in G$.
+    %
+    Suppose $\mapTimestamp \in \mapTimestampSetR$ is a compliant timestamp assignment with respect to \profileSet, and $\orderOutput$ is a vertex ordering on $G_\SCC$ that orders vertices by a non-decreasing order on \mapTimestamp, then it holds that
+    %
+    \[ \DBW(\orderOutput, G_\SCC) \le 3 \max \big| V_i \big|. \]
+\end{theorem}
+
+\begin{proof}
+    Suppose a $(\mapTimestampMin, \txDelay)$-partition produces $n \ge 4$ partitions (otherwise it is trivial) and consider a back edge $(u, v)$.
+    %
+    The proof of \cref{thm:dbw-partition} shows that either $u, v$ are in the same partition, or $u$ is in the next partition of $v$.
+
+    If $u, v$ are in the same partition (i.e., $u, v \in V_i$), then $\mapTimestamp(u), \mapTimestamp(v)$ are either in partition $V_i$ or $V_{i + 1}$.
+    %
+    Note that for all vertices $v \in V_j$, $\mapTimestamp(v)$ is either in $V_j$ or $V_{j + 1}$.
+    %
+    We have $\orderOutput(v) - \orderOutput(u) \le |V_{i - 1}| + |V_i| + |V_{i + 1}| \le 3 \max |V_i|$.
+
+    If $u ,v$ are in the adjacent partition (i.e., $u \in V_i$ and $v \in V_{i + 1}$), since $\orderOutput(v) \ge \orderOutput(u)$, $\mapTimestamp(u), \mapTimestamp(v) \in V_{i + 1}$; otherwise if $\mapTimestamp(v) \in V_i$ or $\mapTimestamp(u) \in V_{i + 2}$ it cannot form the order.
+    %
+    Similarly, we have $\orderOutput(v) - \orderOutput(u) \le |V_{i + 1}| + |V_{i + 2}| \le 2 \max |V_i|$.
+\end{proof}
+
+\paragraph{Timed directed bandwidth.}
+%
+Given that \cref{def:varphi-dbw-order-fairness} might conflict with liveness even if the transaction dissemination is \txDelay-bounded, we shall define a feasible fair order based on our observations in \cref{thm:dbw-partition,thm:dbw-timestamp-order}.
+%
+Our technique is to extend the bandwidth function \DBW to a timed fashion --- i.e., the input dependency graph $G$ is now accompanied with the earliest time that a transaction appears in the (honest) profile.
+%
+A timed directed bandwidth function \TDBW on a (strongly connected) graph $G$ with timestamp assignment \mapTimestampMin works as follows.
+%
+If the earliest timestamp of two transactions are sufficiently apart from each other (i.e., the cycle is large and spans for a long time) then \TDBW returns an upper bound as extracted in \cref{thm:dbw-timestamp-order}; otherwise it returns the directed bandwidth on graph $G$.
+%
+\begin{eqnarray*}
+    \TDBW(G) =
+    \left\{~
+    \begin{aligned}
+         & 3 \max \big| V_i (G) \big| \hspace*{3em} if~\exists (\tx, \tx') \mapTimestampMin(\tx) \ge \mapTimestampMin(\tx') + 3\txDelay, \\
+         & \DBW(G) \hspace*{5.7em} otherwise.
+    \end{aligned}
+    \right.
+\end{eqnarray*}
+
+We are now ready to extend the $(\varphi, \DBW)$-order-fairness (\cref{def:varphi-dbw-order-fairness}) by replacing the bandwidth function \DBW with the timed bandwidth function \TDBW.
+%
+In this new definition, if two transactions are not within the same Condorcet cycle over all possible dependency graphs, their order in the output should follow parties' preference;
+%
+if they are in the same cycle on some graphs, and all cycles are relatively small (i.e., it does not span for too long time) then their distance is upper-bounded by the largest possible bandwidth of the SCCs;
+%
+and finally if some cycles do span for a long time, then we replace the upper-bound by three times the total number of concurrent transactions in a \txDelay time window.
+
+\begin{definition}
+    [$(\varphi, \TDBW)$-order-fairness]
+    \label{def:varphi-tdbw-order-fairness}
+
+    A profile \orderOutput is a $(\varphi, \TDBW)$-fair-order on \profileSet if for all $\tx, \tx'$ such that $\tx \before^\varphi_\profileSet \tx'$, it holds that
+    %
+    \[ \orderOutput(\tx) - \orderOutput(\tx') \le \max_{G \in \mathbb{G}_{\profileSet, \varphi}} \TDBW \big( \SCC(G, \tx, \tx') \big), \]
+    %
+    where $\SCC(G, \tx, \tx')$ is a function that outputs an SCC in $G$ that contains both $\tx, \tx'$ if it exists, and a null graph otherwise.
+\end{definition}

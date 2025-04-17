@@ -1,0 +1,85 @@
+\subsection{Transaction Dependency Graphs}
+\label{subsec:graph-properties}
+
+Fix $\varphi$ and $n$ transaction profiles \profileSet, there will be a unique $(\profileSet, \varphi)$-dependency-graph $G_{\profileSet, \varphi}$.
+%
+When $\varphi < 1 / 2 + 1 / n$ and $n$ is odd (i.e., the majority preference), the dependency graph will be a tournament (since all pairwise preference can be extracted).
+%
+As $\varphi$ increases, the graph becomes more and more sparse.
+%
+While the specific edges to be removed are subject to the profiles, we show that the structure of dependency graphs depends on the fairness parameter $\varphi$, and a large $\varphi$ implies graphs without cycles of small size.
+%
+For instance, when $\varphi > 2 / 3$, no directed triangle can exist in the dependency graph; when $\varphi > 3 / 4$, no directed square can exist; etc.
+We formalize this property in \cref{thm:dependency-graph-min-cycle}.
+
+\begin{theorem} \label{thm:dependency-graph-min-cycle}
+    For any $\varphi > 1 / 2$ and any profiles \profileSet, the $(\profileSet, \varphi)$-dependency-graph $G_{\profileSet, \varphi}$ does not contain cycles of size $k$ for all $k < \lceil 1 / (1 - \varphi) \rceil$.
+\end{theorem}
+
+\begin{proof}
+    Consider a cycle $v_1 v_2 \cdots v_k v_1$ of size $k$.
+    %
+    By transitivity of $\prec$, for any party $\party_i$ such that $v_k \prec_i v_1$, there exists a $j$ such that $v_j \not\before_i v_{j + 1}$.
+    %
+    Since $v_k v_1 \in E(G_{\profileSet, \varphi})$, we have $v_k \prec^\varphi v_1$.
+    %
+    Thus, there exists a $j$ such that $v_j \not\before_i v_{j + 1}$ for at
+    least $\varphi / (k - 1)$ fraction of parties.
+    %
+    But because $v_j v_{j + 1}\in E(G_{\profileSet, \varphi})$, it holds
+    %
+    \[ \frac \varphi {k - 1} \le 1 - \varphi \implies k \ge \frac 1 {1 - \varphi}. \qedhere \]
+\end{proof}
+
+Conversely, given an oriented graph $G$, there exist some profiles whose dependency graph is exactly $G$.
+%
+McGarvey \cite{McGarvey53} provides an approach to construct these profiles (with majority preference).
+%
+We briefly describe McGarvey's approach here.
+%
+Suppose we would like to construct a profile set \profileSet from an oriented graph $G$ with $m$ vertices.
+%
+For each edge $(v_i, v_j) \in G$, add two profiles $\profile_1, \profile_2$ to
+\profileSet with $\profile_1(\tx_i) = 1, \profile_1(\tx_j) = 2, \profile_2(\tx_i) = m - 1, \profile_2(\tx_j) = m$ and $\profile_1(\tx_k) + \profile_2(\tx_k) = m + 1$ for all $k \neq i,j$ --- i.e., $\tx_i, \tx_j$ are put
+at the head and rear of the profile respectively and the rest are in an exactly
+reversed order.
+%
+Notice for all edge $(v_i, v_j)$, $\tx_i, \tx_j$ are in the same order only in the two profiles constructed from them.
+
+\paragraph{Dependency graph with adversarial profiles.}
+%
+Given a protocol execution, the $(\profileSet^\honestPartySet, \varphi)$-dependency-graph $G$ is unique and well-defined.
+%
+We are interested in the relationship between $G$ and dependency graphs that are constructed with adversarial profiles.
+
+Note that parties cannot distinguish which profile is corrupted, thus for $\profileSet = \langle \profileSet^\honestPartySet, \profileSet^\adv \rangle$, it is infeasible to consider the dependency graph based on preferences held by $\varphi$ fraction of profiles.
+%
+For instance, when $\varphi h$ honest parties believe $\tx \before \tx'$, the adversary can collude with the minority and vanish this preference in \profileSet; similarly, when $(\varphi h - 1)$ honest parties receive $\tx \before \tx'$, the adversary can join forces with them and make this preference account for $\varphi$ fraction in \profileSet.
+
+Fix honest profiles $\profileSet^\honestPartySet$, we show that for any admissible adversary \adv and any adversarial profiles $\profileSet^\adv$ selected by \adv, it yields a dependency graph $G'$ on $\langle \profileSet^\honestPartySet, \profileSet^\adv \rangle$ with majority preference such that all edges in $G$ remain the same orientation in $G'$.
+
+\begin{theorem} \label{thm:profile-supergraph}
+    Fix $\varphi$ and honest profiles $\profileSet^\honestPartySet$ and denote the $(\profileSet^\honestPartySet, \varphi)$-dependency-graph by $G$.
+    %
+    For any graph $G' \in \{G_\profileSet \mathbin| \profileSet = \langle \profileSet^\honestPartySet, \profileSet^\adv \rangle \text{ and } \profileSet^\adv \text{ is chosen by an} \allowbreak \text{admissible adversary }\}$, it holds that $G'$ is a spanning supergraph of $G$.
+\end{theorem}
+
+\begin{proof}
+    Since the transaction space on \profile to construct $G$ and $G'$ are the same, $V(G) = V(G')$.
+    %
+    It suffices to show that $E(G) \subseteq E(G')$.
+    %
+    Suppose towards a contradiction, there is an edge $(\tx ,\tx') \in E(G)$ but $(\tx, \tx') \notin E(G')$.
+    %
+    This implies $\tx \before^\varphi_{\profileSet^\honestPartySet} \tx'$; and in the profile set \profileSet that generates $G'$, less than half of the profiles report $\tx \before \tx'$.
+    %
+    However since the adversary can append at most $(2\varphi - 1)h - 1$ profiles, we get the following contradiction:
+    %
+    $\varphi h < (1 - \varphi) h + (2\varphi - 1)h - 1 = \varphi h - 1.$
+\end{proof}
+
+\cref{thm:profile-supergraph} shows, with admissible adversarial manipulation, the $\varphi$-preferences are ``robust'' among all dependency graphs.
+%
+We write the set of all possible dependency graphs on $\profileSet = \langle \profileSet^\honestPartySet, \profileSet^\adv \rangle$ from majority preference as $\mathbb{G}_{\profileSet^\honestPartySet, \varphi}$.
+%
+Note that when given $\profileSet^\honestPartySet$ and $\varphi$, the set of all possible $\profileSet^\adv$ is well-defined with an admissible adversary by \cref{thm:admissible-adversary}.
