@@ -1,0 +1,122 @@
+\subsection{Taxis with Weak Liveness}
+\label{subsec:taxis-weak-liveness}
+
+\paragraph{Mining procedure.}
+%
+In every round, parties try to mine new blocks after they update their local chains according to the chain selection rule (see below for validation details).
+%
+Two different block contents will be prepared: ledger block content $\mathtt{LBContent}$ which contains all (valid) newly seen profile blocks; and profile block content $\mathtt{PBContent}$ that includes the local profile of the miner.
+%
+Parties then compute the Merkle root $\mathtt{st}_{\LB} = \mathsf{MerkleTree}(\mathtt{LBContent})$ and $\mathtt{st}_{\PB} = \mathsf{MerkleTree}(\mathtt{PBContent})$, respectively.
+%
+Next, miners make a single random oracle query with the following input: $ctr$, a random nonce; $h$, the reference to previous block; $h'$, the reference to the last block in the settled part; \round, the current timestamp; $\mathtt{st}_{\LB}$, the Merkle root of ledger block; and $\mathtt{st}_{\PB}$, the Merkle root of the profile block.
+%
+They receive an output
+%
+\[ u = H(ctr, h, h', \round, \mathtt{st}_{\LB}, \mathtt{st}_{\PB}). \]
+%
+If $u < T_\LB$, the party succeeds in mining a ledger block.
+%
+A new block \LB with content $\mathtt{LBContent}$ is generated and appended to the local chain.
+%
+If the value of the reversed output string (which we denote by \stringRev{u}) satisfies $\stringRev{u} < T_\PB$, a new profile block \PB is mined and will be diffused to the network.
+
+Note that timestamp \round is shared information in both blocks, so it is impossible to get two products with different timestamps.
+%
+This prohibits the adversary from manipulating timestamp unless she completely drops from one mining procedure.
+%
+For a ledger block, the reference to the settled block ($h'$) and the Merkle root of profile blocks ($\mathtt{st}_{\PB}$) are dummy information and we do not care about their values, they are only useful when parties want to check their validity (see below).
+%
+Similarly, for a profile block, the reference to the previous block ($h$) and the Merkle root of ledger blocks ($\mathtt{st}_{\LB}$) are dummy information.
+
+We also highlight that parties do not need to include their entire transaction log in \PB.
+%
+A prefix of the profile can be pruned if all transactions in that prefix appear in the settled blockchain for more than \PBWindowLen rounds (i.e., these transactions have been reported for sufficiently long time and parties agree on the set of transactions that precede them, see below for details).
+%
+Note that with \txDelay-disseminated transaction diffusion and chain-quality property of the blockchain, all transactions received by an honest party before time $t$ is guaranteed to be in the settled blockchain within a bounded amount of time (see protocol analysis).
+%
+Furthermore, if \party notices that its local transaction log shares a common prefix with another profile block \PB in the settled blockchain, then \party can produce profile blocks with pointer to \PB to indicate their common part and thus save space.
+
+\input{protocols/mining-procedure-taxis-wl}
+
+\paragraph{Validity check of chains.}
+%
+Recall that the \Taxis blockchain is similar to that of Bitcoin's (except that \Taxis includes additional 2-for-1 PoW information) and so we follow \cite{C:GarKiaLeo17} regarding the validity of ledger blocks.
+%
+In addition, we also need to check the validity of profile blocks.
+%
+For a valid profile block \PB, we require that its block header satisfies three properties:
+%
+(i) \PB correctly reports a reference to \LB where \LB is the last block after pruning the blockchain for $k$ rounds (where $k$ is the common prefix, see below);
+%
+(ii) \PB reports a timestamp that is earlier than the ledger block containing \PB but no later than $\timestamp{\LB} + R$;
+%
+and (iii) hash of \PB block header is smaller than the profile block target $T_\PB$.
+%
+A chain \chain in \Taxis is valid if \chain itself is valid and all the profile blocks included in \chain are valid.
+%
+See \cref{algorithm:is-valid-chain} for the complete description.
+
+\input{algorithms/is-valid-chain}
+
+\paragraph{Extracting transaction order.}
+%
+We detail how the ledger \ledger is extracted in \TaxisWL.
+%
+Generally speaking, parties will use profile blocks in the settled part of the blockchain to build a dependency graph; then, transaction order is determined by running graph condensation and (possibly) \textsc{DirectedBandwidth} algorithm (see \cref{algorithm:directed-bandwidth}) on all SCCs.
+%
+Note that all of these computations can be done locally based on the on-chain information.
+
+As protocol execution proceeds, local chains held by honest parties will share a long common prefix (we write $k$ as the common prefix parameter --- i.e., the rounds that parties need to prune their local chain).
+%
+Protocol participants will extract a transaction pool \txpool in their common prefix by selecting those transactions that have been reported for sufficiently long time.
+%
+More specifically, in order for a transaction \tx to be selected, there should exist a $K$-time-window of \tx, starting at time $t$ such that (i) $t$ is the timestamp of the earliest ledger block that includes a profile block \PB reporting \tx; and (ii) this $K$-time-window should be fully included in the settled blockchain --- i.e., at round \round a party only considers time window that starts before round $\round - k - K$.
+
+Transactions in \txpool are then added to a dependency graph $G$ as vertices.
+%
+Regarding rules to add edges, for each transaction \tx we care about the profile blocks in its $K$-time-window: if the majority of these profile blocks report $\tx' \before \tx$, then we add a \emph{dotted} edge $(\tx', \tx)$ to $G$ (when $\tx'$ does not exist in $G$, a vertex of $\tx'$ is added).
+%
+Note that a dotted edge $(\tx', \tx)$ does not confirm the preference $\tx' \before \tx$ in $G$.
+%
+In order to count the edge in the subsequent computation, we need to wait for the $K$-time-window of $\tx'$ and see if the majority of those profile blocks report $\tx \before \tx'$.
+%
+When this holds, we update the dotted edge to \emph{solid} (all the subsequent computations on $G$ only consider solid edges).
+%
+The reason for designing this two-phase edge adding rule is because, for those transaction pairs such that no $\varphi$-preference holds, the adversary might be able to report conflicting orders in the corresponding $K$-time-windows\footnote{When an edge from $\tx'$ to \tx exist, \tx will not get confirmed into the ledger. Also note that, with overwhelming probability, solid edges will appear on those transaction pairs with $\varphi$-preference. For details, see the protocol analysis.}.
+
+After constructing the dependency graph $G$, parties can linearize the transactions on top of $G$.
+%
+Notice that $G$ can be cyclic. Parties first compute the condensation graph $G^*$ of $G$ --- i.e. each SCC is replaced by a vertex.
+%
+Since $G^*$ is acyclic, there exist source vertices (i.e., vertices without incoming edges) in $G^*$.
+%
+Protocol participants do the following steps repeatedly.
+%
+Let $V_{\mathsf{source}}$ denote the set of all source vertices in $G^*$ such that for all $v \in V_{\mathsf{source}}$ all transactions in $v$ are in \txpool (transactions that are waiting for some unconfirmed ones will never be selected in $V_{\mathsf{source}}$).
+%
+If $V_{\mathsf{source}}$ is empty then parties terminate and output the final ledger \ledger.
+%
+Otherwise, they select $v \in V_{\mathsf{source}}$ such that the starting time of $v$'s associated $K$-time-window is the earliest among $V_{\mathsf{source}}$ (if a vertex in $G^*$ represents a SCC in $G$, we choose the earliest time window in that SCC).
+%
+Then, if $v$ represents a single vertex in $G$, parties append the corresponding transaction to \ledger directly; otherwise, they run \cref{algorithm:directed-bandwidth} to extract the bandwidth-optimal order $l$ on $v_\SCC$ (i.e., the component in the original graph that condenses to $v$ in $G^*$) and append $l$ to \ledger.
+%
+After processing $v$, we remove it from $G^*$ and this yields a new source vertex set $V_{\mathsf{source}}$.
+
+We present the full serialization code in \cref{algorithm:taxiswl-extract-transaction-order}.
+%
+Note that we slightly abuse the notation of block timestamp and we write $\timestamp{\tx}$ as the beginning time of $K$-time-window associated with \tx --- i.e., it is the timestamp of the first ledger block \LB that includes a profile block with \tx.
+
+\input{algorithms/taxis-wl-extract-order}
+
+\paragraph{\TaxisWL ledger properties.}
+%
+With bounded dynamic participation and appropriate parameters, the ledger \ledger of \TaxisWL satisfies three properties --- consistency, weak-liveness and  $(\varphi, \DBW)$-order-fairness.
+%
+Note that for consistency, a suffix of \ledger should be pruned to be resistant to adversarial manipulation.
+%
+Refer to the protocol analysis in \cref{sec:security-analysis} and \cref{thm:consistency} to see the detailed consistency parameter.
+
+\begin{theorem}[Informal]
+    In a $(\gamma, s)$-respecting environment, if Conditions \eqref{condition:min-length}, \eqref{condition:error-absorb} and \eqref{condition:order-fairness-param} are satisfied, the ledger \ledger of \TaxisWL achieves consistency, weak-liveness and $(\varphi, \DBW)$-order-fairness except with probability negligibly small in the security parameter.
+\end{theorem}

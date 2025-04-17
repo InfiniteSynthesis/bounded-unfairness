@@ -1,0 +1,74 @@
+\subsection{Taxis with Standard Liveness}
+\label{subsec:taxis-standard-liveness}
+
+We present the full \Taxis protocol on top of \TaxisWL in this section.
+%
+Briefly speaking, we add a fallback mechanism to order transactions that remain unconfirmed for a long time based on the beginning point of their \PBWindowLen-time-window.
+%
+Note that we only make two simple changes in the mining and order-extraction stage.
+
+\paragraph{Mining procedure.}
+%
+In \Taxis, parties book-keep the local receiving time of transactions; and, when mining profile blocks, they additionally attach these timestamps to each transaction.
+%
+I.e., we replace Line~\ref{code:mining-profiles} in \cref{protocol:mining-procedure} with ``Set $\mathtt{localProfile} \gets \mathtt{localProfile} \concat ( \langle \tx_1, \round \rangle, \ldots, \langle \tx_i, \round \rangle )$'' where $\round$ is party's current local time.
+%
+All the other steps in \cref{protocol:mining-procedure} remain the same.
+%
+Since parties will agree on the profiles of a transaction \tx in a sufficiently long time window, they will agree on the timestamp vector associated with \tx as well.
+
+\input{protocols/mining-procedure-taxis}
+
+\paragraph{Extracting transaction order.}
+%
+During the order-extraction stage, a fallback mechanism is provided to deal with cycles that span for a long time.
+%
+Specifically, for all unconfirmed vertices $V_{\mathsf{unconfirmed}}$ in the condensation graph $G^*$, we check if there exist a vertex $v \in V_{\mathsf{unconfirmed}}$ such that its corresponding SCC $(v_\SCC)$ in $G$ contain transactions whose \PBWindowLen-time-window begins before $\round - (K + k + \varDelta_{\mathsf{timeout}})$\footnote{We note that two large cycles cannot run in parallel, and there is at most one vertex with multiple transactions that can pass the timeout check. Refer to protocol analysis for more details.}.
+%
+Note that $\varDelta_{\mathsf{timeout}}$ is a timeout parameter that indicates the cycle spans for a long time (see protocol analysis for more details).
+%
+If such $v$ in $G^*$ exists, we order all vertices in $v_\SCC$ in an increasing order based on their median timestamp.
+%
+For a transaction \tx, its median timestamp $\med(\tx)$ is computed on the timestamp vector associated with \tx in its \PBWindowLen-time-window.
+%
+Note that since parties will agree on \tx's timestamp vector, they will also agree on $\med(\tx)$; and, taking the median guarantees that $\med(\tx)$ falls in the \txDelay-dissemination time window with \tx, thus the results in \cref{thm:dbw-timestamp-order} applies.
+
+In addition, when tracing the previous dependency graphs, \Taxis will be able to detect those large cycles by carefully comparing the beginning point of $K$-time windows among all transactions in the cycle, so that it will process them using the same fallback mechanism (this guarantees consistency).
+
+\input{algorithms/taxis-extract-order}
+
+\paragraph{\Taxis ledger properties.}
+%
+We provide a full analysis of the security of \Taxis protocol with bounded dynamic participation in \cref{sec:security-analysis}.
+%
+Specifically, we prove that the ledger \ledger of \Taxis satisfies three desired properties --- consistency, (standard) liveness and $(\varphi, \TDBW)$-order-fairness.
+
+\begin{theorem}
+    In a $(\gamma, s)$-respecting environment, if Conditions \eqref{condition:min-length}, \eqref{condition:error-absorb} and \eqref{condition:order-fairness-param} are satisfied, the ledger \ledger of \Taxis achieves consistency, liveness and $(\varphi, \TDBW)$-order-fairness with parameters as specified in \cref{thm:consistency,thm:liveness} except with probability negligibly small in the security parameter.
+\end{theorem}
+
+\paragraph{Performance analysis of \Taxis.}
+%
+We detail the computation/communication complexity of the \Taxis protocol.
+%
+For the proof of work part and communication overhead, it requires a random oracle call per round and possibly (if a PoW is found) a message transmission with message size, worst case, linear in the security parameter plus the number of transactions that are disseminated within a sliding window of length polylogarithmic in the security parameter.
+
+To maintain the local transaction dependency graph $G$, note that $G$ can be
+built incrementally since all vertices and edges are extracted from the settled
+part of the blockchain; and, every time a vertex \tx is added to $G$, the number
+of computational steps required (which will add the necessary edges between the
+vertices) is linear in the number of transactions that appear in \tx's
+\PBWindowLen-time-window, which is also of length polylogarithmic in the
+security parameter.
+
+Regarding solving \textsc{DirectedBandwidth} on each SCC of the transaction dependency graph, note that while the exact algorithm (\cref{algorithm:directed-bandwidth}) from~\cite{FSTTCS:JKLSS19} consumes exponential time with respect to the number of concurrent transactions, we highlight that, in real execution, it runs in practical time for two reasons.
+%
+First, a polynomial-time fallback (Line~\ref{code:fallback-begin}-\ref{code:fallback-end} in \cref{algorithm:taxis-extract-transaction-order}) will be triggered after a time slack of length $\varDelta_{\mathsf{timeout}}$ has passed, where $\varDelta_{\mathsf{timeout}}$ is a parameter that is of the same order of magnitude with respect to the common prefix parameter (cf.~\cref{eq:ell-length,eq:window-length}), the size of input (i.e., the number of vertices in a SCC) to \textsc{DirectedBandwidth} is therefore bounded by a polylogarithmic function of $\kappa$ times the transaction throughput.
+%
+On the other hand, the transaction dependency graph of a large Condorcet cycle is of good structure\footnote{If a Condorcet cycle spans for a long time, and the time points that two transactions enter this system are sufficiently apart from each other, then the edge between these two transactions will never be selected as backward edge. For large Condorcet cycles, such type of edges account for the vast majority of all the edges. See a detailed explanation in \cref{subsec:exact-algorithm-over-dependency-graphs}.} such that we could improve the running time from $\bigO^\ast(3^n \cdot 2^{n^2})$ in \cite{FSTTCS:JKLSS19} to $f(t) \cdot n^t \cdot 2^{n t }$ where $t$ is the
+transaction throughput and $f(t)$ is a function that depends only on $t$, note that $t \ll n$.
+%
+We present and analyze this algorithm in \cref{subsec:exact-algorithm-over-dependency-graphs}.
+%
+Also note that while this local computation is the most expensive step but
+it only needs to be performed once for each SCC throughout the entire protocol execution.

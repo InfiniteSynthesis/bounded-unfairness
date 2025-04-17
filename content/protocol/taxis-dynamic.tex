@@ -1,0 +1,26 @@
+\subsection{Taxis with Dynamic Participation}
+\label{subsec:dynamic-participation}
+
+We detail how to adapt the above two protocols \TaxisWL and \Taxis from static number of parties to the dynamic participation.
+
+\paragraph{Difficulty recalculation function.}
+%
+In a permissionless environment, mining difficulties $T_\LB$ and $T_\PB$ should be adjusted as the participant population fluctuates.
+%
+We adopt the same difficulty adjustment function in Bitcoin\footnote{We refer to \cite{C:GarKiaLeo17} for more details on analysis of Bitcoin with dynamic participation.} to recalculate $T_\LB$ (so $T_\PB$ is adjusted as well).
+%
+More specifically, this function adjusts mining difficulty at the end of epochs (an epoch consists of $m$ blocks), and the target for the next epoch $T'_\LB$ is computed base on current target $T_\LB$ and the time elapsed to mine $m$ blocks --- i.e., $T'_\LB = \varLambda / (m / f) \cdot T_\LB$ where $f$ is the ideal block generation rate, and $\varLambda$ is the difference between the timestamps of the last block in the previous and current epoch.
+%
+In addition, the relative amount of difficulty that can be adjusted each time is bounded by a constant $\tau$ (which is similar to that in Bitcoin where $\tau = 4$ is in use).
+
+\paragraph{Counting majority as accumulated difficulty.}
+%
+Note that after profile blocks are mined under different difficulties, we should count ``majority'' in a \PBWindowLen-time-window in a new sense.
+%
+Precisely, we say some blocks account for the majority if they accumulate more than $d / 2$ difficulty where $d$ is the total difficulty of all profile blocks in the time window.
+%
+This new majority rule applies to building graph stage in \cref{algorithm:taxiswl-extract-transaction-order,algorithm:taxis-extract-transaction-order}.
+%
+It also applies to the selection of median timestamps.
+%
+I.e., a timestamp $t$ is selected for \tx because $t$ is the earliest timestamp such that all profiles that report a timestamp no later than $t$ yields more than half of the accumulated difficulties in \tx's \PBWindowLen-time-window.

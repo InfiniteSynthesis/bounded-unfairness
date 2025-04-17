@@ -1,0 +1,72 @@
+\section{Taxis Protocol}
+\label{sec:protocol}
+
+In this section we present a new protocol \Taxis and its basic building blocks.
+%
+The ultimate product of \Taxis is a ledger \ledger providing fair transaction order.
+
+Before we introduce \Taxis, we present its preliminary version \TaxisWL as a direct comparison with \textsf{Aequitas}.
+%
+\TaxisWL achieves consistency, weak-liveness and $(\varphi, \DBW)$-order-fairness.
+%
+Specifically, while the liveness is weak (same as \textsf{Aequitas}), this protocol achieves the best transaction order fairness that we can expect.
+%
+Next, by adding a few simple modifications on \TaxisWL, we present \Taxis that reconciles the tension between liveness and fair order.
+%
+The ledger of \Taxis satisfies consistency, (standard) liveness and $(\varphi, \TDBW)$-fair-order.
+
+\Taxis is a two-stage protocol that decouples the mining procedure of profiles and the final serialization of transactions.
+%
+We will use blockchain as an intermediate information aggregator to collect profiles (i.e., transaction log) and build the ultimate ledger \ledger on top of this blockchain.
+%
+For simplicity, we present \TaxisWL and \Taxis assuming static number of participants and discuss how to adapt them to the dynamic participation in \cref{subsec:dynamic-participation}.
+
+\paragraph{Blockchain notations.}
+%
+A block with target $T \in \mathbb{N}$ is a quadruple of the form $\block = \langle ctr, r, h, x \rangle$ where $ctr, r \in \mathbb{N}$, $h \in \{0, 1\}$ and $x \in \{0, 1\}^*$.
+%
+A blockchain \chain is a (possibly empty) sequence of blocks; the rightmost block by convention is denoted by \chainHead{\chain} (note $\chainHead{\varepsilon} = \varepsilon$).
+%
+These blocks are chained in the sense that if $\block_{i + 1} = \langle ctr, r, h, x \rangle$, then $h = H(\block_i)$, where $H(\cdot)$ is cryptographic hash function with output in $\{0, 1\}^\kappa$.
+%
+We adopt \timestamp{\block} to denote the timestamp of \block; and, slightly abusing the notations and omitting the current time \round, we will use $\chain^{\lceil k}$ to denote the chain from pruning all blocks \block such that $\timestamp{\block} \ge \round - k$.
+
+\paragraph{2-for-1 proof-of-Work.}
+%
+2-for-1 PoW is a primitive that binds multiple PoW mining processes together by utilizing a single random oracle query.
+%
+It was first proposed in \cite{EC:GarKiaLeo15} to improve the corruption threshold in ledger consensus.
+%
+This primitive mitigates the possible attack with multiple independent mining processes, where the adversary can join forces to any one of the oracles and gain undesired advantage.
+
+We will use 2-for-1 PoW to mine two types of blocks: ledger blocks and profile blocks.
+%
+Ledger blocks form the \Taxis blockchain and they will only include recent profile blocks (unlike regular blockchains, ledger blocks in \Taxis will not include any transactions ``directly'').
+%
+Meanwhile, parties will use profile blocks to report their local profiles.
+%
+We denote the mining target of ledger blocks and profile blocks by $T_\LB$ and $T_\PB$, respectively.
+%
+\Taxis will maintain a constant ratio between them; for simplicity, in our presentation and analysis, we assume $T_\LB = T_\PB$.
+
+The main goal of adopting 2-for-1 PoW to bind the mining process of these two types of blocks together, is to achieve better \emph{chain quality}.
+%
+Recall that chain quality is bad in the Bitcoin backbone protocol \cite{EC:GarKiaLeo15,C:GarKiaLeo17}, where the adversary can contribute more blocks to the common prefix compared with her relative computational power.
+%
+By adopting 2-for-1 PoW, \Taxis guarantees that, for a sufficiently long time, $\varphi$ fraction of parties mine $\varphi$ fraction of the profiles (and they are all included by ledger blocks in the blockchain).
+
+\paragraph{Freshness and recency parameter.}
+%
+For the sake of achieving better chain quality on profile blocks, certain changes should be made to the 2-for-1 mining procedure.
+%
+Ideally, the adversary \adv should not be allowed to mine profile blocks timestamped in the very future; and, blocks should go stale as time passes by so that \adv cannot choose to withhold them to gain a sudden advantage.
+%
+Analogous to the treatment in fruitchain \cite{PODC:PasShi17}, we introduce two mechanisms to help ensure the \emph{freshness} of profile blocks.
+%
+On one hand, the header of a profile block should point to the last block in the settled blockchain; this prevents the adversary from mining blocks in the very future, as an honest ledger block will introduce fresh randomness which is unpredictable for \adv.
+%
+On the other hand, we set a recency parameter $R$ (in rounds) such that a profile block \PB referring to a settled ledger block \LB will only be valid before time $\timestamp{\LB} + R$ (in other words, it cannot be included by a ledger block with timestamp later than $\timestamp{\LB} + R$).
+
+\input{content/protocol/taxiswl}
+\input{content/protocol/taxis}
+\input{content/protocol/taxis-dynamic}
