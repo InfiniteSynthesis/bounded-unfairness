@@ -1,0 +1,397 @@
+\subsection{Notations and Preliminary Results}
+\label{subsec:notations-preliminary-results}
+
+We adopt ``Bitcoin backbone protocol'' analytical toolset (cf. \cite{C:GarKiaLeo17,EPRINT:GarKiaLeo20}) as the main framework to carry out the security analysis of \Taxis.
+%
+In this section we revisit some notations and results in the bounded-delay network from \cite{EPRINT:GarKiaLeo20}.
+
+Notably, we extend the notation of $D_r$ that models the total difficulty that honest parties can acquire during round $r$ to $D^\tx_r$ ($D^{\tx, \tx'}_r$, resp.), which captures the amount of difficulty that $\varphi$ fraction of honest parties associated with \tx ($\tx, \tx'$, resp.) can get.
+%
+Specifically, $D^\tx_r$ argues for the median timestamp of \tx and $D^{\tx, \tx'}_r$ is for the fraction of profiles that report $\tx' \before \tx$ in the time window of \tx (note that $\tx, \tx'$ and $\tx', \tx$ are two different pairs, details see analysis below).
+%
+We equip the typical execution (see \cref{def:typical-execution}(b)) with lower bounds on $D^{\varphi, \tx}_r$ ($D^{\tx \before^\varphi \tx'}_r$, resp.) as well.
+%
+On the other hand, we quantify the length of a $K$-time-window (cf. \cref{eq:window-length}) and introduce a new restriction (cf. Condition~\cref{condition:order-fairness-param}) that lower-bounds $\varphi$ so as to get desired properties on profile blocks.
+
+Our probability space is over all executions of length at most some polynomial in $\kappa$ and $\lambda$ and we denote by \Pr the probability measure of
+this space.
+%
+Furthermore, let \E be a random variable taking values on this space and with a distribution induced by the random coins of all entities (adversary, environment, parties) and the random oracle.
+
+If at round $r$ exactly $h$ alert parties query the oracle with target $T$, the probability of at least one of them will succeed is $f(T, h) = 1 - (1 - p T)^h \le p T h, \text{ where } p = 1 / 2^\kappa$.
+%
+During round $r$, alert parties might be querying the random oracle for various targets.
+%
+We denote by $T_r^{\min}$ and $T_r^{\max}$ the minimum and maximum of those targets.
+%
+Moreover, the initial target $T_0$ implies in our model an initial estimate of the number of alert parties $h_0$. For convenience, we denote $f_0 = f(T_0, h_0)$ and simply refer to it as $f$.
+
+\begin{definition}
+    \begin{cccItemize}[nosep]
+        \item Round $r$ is \emph{good} if $f / 2\gamma^2 \le p h_r T^{\min}_r$ and $p h_r T^{\max}_r \le (1 + \delta) \gamma^2 f$.
+
+        \item Round $r$ is a \emph{target recalculation point} of a chain \chain, if \chain has a block with timestamp $r$ and height a multiple of $m$.
+
+        \item A target recalculation point $r$ is \emph{good} if the target $T$ for the next block satisfies $f /2\gamma \le ph_r T \le (1 + \delta)\gamma f$.
+
+        \item A chain is \emph{good} if all its target-recalculation points are good.
+
+        \item A chain is stale if for some $u \ge \ell + 2\delay$ it does not contain an honest block with timestamp $v \ge u - \ell - 2\delay$.
+
+        \item The blocks between two consecutive target recalculation points $u$ and $v$ on a chain \chain are an epoch of \chain. The duration of the epoch is $u - v$.
+    \end{cccItemize}
+\end{definition}
+
+\begin{definition} \label{def:security-predicate}
+    For a round $r$, let:
+    \begin{cccItemize}[nosep]
+        \item $\textsc{GoodChains}(r) \triangleq$ ``For all $u \le r$, every chain in $\setChains_u$ is good.''
+
+        \item $\textsc{GoodRound}(r) \triangleq$ ``All rounds $u \le r$ are good.''
+
+        \item $\textsc{NoStaleChains}(r) \triangleq$ ``For all $u \le r$, there are no stale chains in $\setChains_u$.''
+
+        \item $\textsc{Accurate}(r) \triangleq$ ``For all $u \le r$,  all chains in $\setChains_u$ are accurate.''
+
+        \item $\textsc{Duration}(r) \triangleq$ ``For all $u < r$ and $\chain \in \setChains_u$, the duration $\varLambda$ of any epoch in \chain satisfies $\frac{1}{2(1 + \delta)\gamma^2} \cdot \frac{m}{f} \le \varLambda \le 2(1 + \delta)\gamma^2 \cdot \frac{m}{f}$.''
+
+        \item $\textsc{CommonPrefix}(r) \triangleq$ ``For all $u < r$ and $\chain, \chain' \in \setChains_u$, $\chainHead{\chain \cap \chain'}$ was created after round $u - \ell - 2\delay$.''
+    \end{cccItemize}
+\end{definition}
+
+\paragraph{Random Variables.}
+%
+We are interested in quantifying the difficulty acquired by honest parties at round $r$.
+%
+Thus, following \cite{EPRINT:GarKiaLeo20}, we define three random variables $D_r$, $Y_r$ and $Q_r$ with respect to round $r$ to analyze the total difficulties that are acquired by \emph{all} alert parties.
+%
+Especially, for a specific transaction \tx, we associate it with $\varphi$ fraction of alert parties and wish to extract the lower bound on total difficulties that these alert parties\footnote{Note that $1/2 < \varphi \le 1$, thus in the worst case there exist exponentially many $\varphi$ fraction subsets of alert parties. Nonetheless, since the number of transactions are polynomially bounded with respect to the total running time, we show that the bad event---difficulties acquired are below the lower bound---is still negligibly small (see the proof of \cref{thm:typical-execution} for details).} can acquire during a round $r$.
+
+\begin{cccItemize}[noitemsep]
+    \item $D_r$ is the sum of the difficulties of all blocks computed by honest parties at round $r$.
+    %
+    Additionally, fix $\varphi$ fraction of honest parties with respect to transaction \tx (transaction pair $\tx, \tx'$ resp.); let $D^{\tx}_r$ ($D^{\tx, \tx'}_r$ resp.) denote the sum of the difficulties of all blocks computed by these parties at round $r$.
+    \item $Y_r$ is the maximum difficulty among all blocks computed by honest parties at round $r$.
+    \item $Q_r$ is equal to $Y_r$ when $D_u = 0$ for all $r < u < r + \delay$ and 0 otherwise.
+\end{cccItemize}
+%
+A round $r$ is called \emph{successful} if $D_r > 0$ and \emph{isolated successful} when $Q_r > 0$.
+%
+For a set of rounds $S$ we write $h(S) = \sum_{r \in S} h_r$ and similarly $t(S)$, $D(S)$, $D^{\varphi, \tx}(S)$, $Y(S)$, $Q(S)$.
+
+Regarding the adversary, while he may query the random oracle for arbitrarily low target and obtain blocks with arbitrarily high difficulty, we wish to upper-bound the difficulty he can during a set of $J$ queries.
+%
+Consider a set of consecutive adversarial queries $J$ and associate it with the target of the first query (this target is denoted by $T(J)$).
+%
+We define $A(J)$ and $B(J)$ to be equal to the sum of the difficulties of all blocks computed by the adversary during queries in $J$ for target at least $T(J) / \tau$ and $T(J)$, respectively.
+
+Let $\E_{r - 1}$ fix the execution just before round $r$.
+%
+In particular, a value $E_{r - 1}$ of $\E_{r - 1}$ determines the adversarial strategy and so determines the targets against which every party will query the oracle at round $r$ and the number of parties $h_r$ and $t_r$, but it does not determine $D_r$ or $Q_r$.
+%
+For an adversarial query $j$ we will write $\E_{j - 1}$ for the execution just before this query.
+
+\paragraph{Mathematical facts.}
+%
+\cref{fact:fluctuation-fact} captures some facts within a $(\gamma, s)$-respecting environment.
+
+\begin{fact} \label{fact:fluctuation-fact}
+    Let $U$ be a set of at most $s$ consecutive rounds in a $(\gamma, s)$-respecting environment and $S \subseteq U$.
+    %
+    \begin{enumerate}[label=(\alph*), leftmargin=*, nosep]
+        \item For any $h \in \{ h_r : r \in U\}$, $\frac{h}{\gamma} < \frac{h(S)}{|S|} \le \gamma h$.
+
+        \item $h(U) \le (1 + \frac{\gamma |U \backslash S|}{|S|} h(S))$.
+
+        \item $|S| \sum_{r \in S} (p h_r)^2 \le \gamma (p h(S))^2$.
+    \end{enumerate}
+\end{fact}
+
+We are also interested in some martingale inequalities (cf.~\cite{C:GarKiaLeo17}).
+
+\begin{definition} \label{def:martingale-sequence}
+    A sequence of random variables $(X_0, X_1, \ldots)$ is a martingale with respect to the sequence $(Y_0, Y_1, \ldots)$, if, for all $n \ge 0$, $X_n$ is determined by $Y_0, \ldots , Y_n$ and $\EX [X_{n + 1} \mathbin| Y_0, \ldots , Y_n] = X_n$.
+\end{definition}
+
+\begin{theorem} \label{thm:martingale-bound}
+    Let $(X_0, X_1, \ldots)$ be a martingale with respect to the sequence $(Y_0, Y_1, \ldots)$.
+    %
+    Suppose an event $G$ implies
+    %
+    \[ X_k - X_{k - 1} \le b \text{ (for all $k$) and } V = \sum_k \Var [X_k - X_{k - 1} \mathbin| Y_1, \ldots, Y_{k - 1}] \le v. \]
+    %
+    Then, for non-negative $n$ and $t$,
+    %
+    \[ \Pr [X_n \ge X_0 + t \wedge G] \le \exp \Big\{ - \frac{t^2}{2v + 2bt / 3} \Big\}. \]
+\end{theorem}
+
+\paragraph{Protocol parameters and conditions.}
+%
+We summaries all the protocol parameters in \cref{table:protocol-params}.
+
+\begin{tabularx}{\textwidth}{c  X }
+    \toprule
+    \textbf{Parameter}
+     & \textbf{Description}
+    \\ \midrule
+    $h_r$
+     & The number of alert parties mining in round $r$.
+    \\ \midrule
+    $t_r$
+     & The number of corrupted parties mining in round $r$.
+    \\ \midrule
+    $\delta$
+     & Advantage of honest parties ($t_r < (1 - \delta) h_r$ for all $r$).
+    \\ \midrule
+    $f$
+     & The probability at least one alert party out of $n_0$ computes a block for target $T_0$.
+    \\ \midrule
+    $m$
+     & The length of an epoch in number of blocks.
+    \\ \midrule
+    $\delay$
+     & Network delay in rounds.
+    \\ \midrule
+    $\kappa$
+     & Security parameter; length of the hash function output.
+    \\ \midrule
+    $(\gamma, s)$
+     & Respecting environment parameter.
+    \\ \midrule
+    $\epsilon$
+     & Quality of concentration of random variables.
+    \\ \midrule
+    $\lambda$
+     & Related to the properties of the protocol.
+    \\ \midrule
+    $\varphi$
+     & Order-fairness parameter (cf. \cref{def:varphi-tdbw-order-fairness}).
+    \\ \midrule
+    $R$
+     & The recency parameter.
+    \\ \midrule
+    \PBWindowLen
+     & The length of a profile block window in number of rounds.
+    \\ \midrule
+    $\varDelta_{\mathsf{timeout}}$
+     & The timeout parameter to process cycles that span for a long time.
+    \\ \bottomrule
+    \caption{Summary of \Taxis parameters.}
+    \label{table:protocol-params}
+\end{tabularx}
+
+In order to get desired convergence, we consider a sufficiently long consecutive sequence of at least
+%
+\begin{equation} \label{eq:ell-length}
+    \ell = \frac{4(1 + 3\epsilon)}{\epsilon^2 f [1 - (1 + \delta) \gamma^2 f]^{\delay + 1}} \cdot \max \{\delay, \tau\} \cdot \gamma^3 \cdot \lambda
+\end{equation}
+%
+rounds.
+%
+Moreover, with the purpose of get desired properties on profile blocks, we would be considering the length of a \PBWindowLen-time-window (measured in number of rounds), the recency parameter and the fallback timeout parameter to be at least
+%
+\begin{equation} \label{eq:window-length}
+    \PBWindowLen = (\frac{\gamma}{\epsilon} + 1) (\ell + 3\delay), R = 3\ell + 6\delay  ~~\text{and}~~ \varDelta_{\mathsf{timeout}} = 3\ell + 7\delay + 5\txDelay.
+\end{equation}
+
+The protocol parameters in \cref{table:protocol-params} should satisfy certain conditions in order to make our analysis viable.
+%
+First, we require that the length of an epoch is lower-bounded w.r.t. $\ell$.
+%
+\begin{equation} \label{condition:min-length} \tag{C1}
+    2\ell + 6\delay \le \frac{\epsilon m}{2(1 + \delta)\gamma^3 f}
+\end{equation}
+%
+Then, we also require that network delay \delay and party fluctuation ratio $\gamma$ is well upper-bounded.
+%
+\begin{equation} \label{condition:error-absorb} \tag{C2}
+    [1 - (1 + \delta)\gamma^2 f]^\delay \ge 1 - \epsilon ~~\text{and}~~ \epsilon \le \delta / 8 \le 1 / 8
+\end{equation}
+%
+Finally, we require that given $\epsilon, \delta$, the order fairness parameter $\varphi$ should be large enough to ensure that $\varphi$ fraction of honest parties still substitute more than half of total number of parties (and the advantage is large enough to absorb the error bounded by $5\epsilon$).
+%
+\begin{equation} \label{condition:order-fairness-param} \tag{C3}
+    (1 - 7\epsilon) \varphi > 1 - \delta / 2
+\end{equation}
+
+\paragraph{Typical executions.}
+%
+We define the notion of \emph{typical} executions following \cite{C:GarKiaLeo17,EPRINT:GarKiaLeo20}.
+%
+The idea here is that given a certain execution $E$, we compare the actual progress and the expected progress that parties will make under the success probabilities.
+%
+If the difference and variance are reasonably small, and no bad events (see \cref{def:insertion-copy-prediction}) about the underlying hash function happen, we declare $E$ \emph{typical}.
+
+\begin{definition} \label{def:insertion-copy-prediction}
+    An insertion occurs when, given a chain \chain with two consecutive blocks \block and $\block'$, a block $\block^*$ created after $\block'$ is such that $\block, \block^*, \block'$ form three consecutive blocks of a valid chain.
+    %
+    A copy occurs if the same block exists in two different positions.
+    %
+    A prediction occurs when a block extends one with later creation time.
+\end{definition}
+
+\begin{definition}
+    [Typical execution]
+    \label{def:typical-execution}
+
+    An execution E is typical if the following hold.
+    %
+    \begin{enumerate}[label=(\alph*), leftmargin=*, noitemsep]
+        \item For any set $S$ of at least $\ell$ consecutive good rounds,
+              %
+              \[(1 - \epsilon)[1 - (1 + \delta) \gamma^2 f]^\delay p h(S) < Q(S) \le D(S) < (1 + \epsilon) p h(S). \]
+
+        \item Fix any transaction \tx and preference pair $\tx, \tx'$ and any set $S$ of at least $2\ell$ consecutive good rounds,
+              %
+              \[ D^{\tx}(S) > (1 - \epsilon) \varphi p h(S) \text{ and } D^{\tx, \tx'}(S) > (1 - \epsilon) \varphi p h(S). \]
+
+        \item For any set $J$ of consecutive adversarial queries and $\alpha(J) = 2(\frac{1}{\epsilon} + \frac{1}{3})\lambda / T(J)$,
+              %
+              \[ A(J) < p|J| + \max \{\epsilon p |J|, \tau \alpha(J)\} ~~\text{and}~~ B(J)< p|J| + \max \{\epsilon p |J|, \alpha(J)\}. \]
+
+        \item No insertions, no copies, and no predictions occurred in $E$.
+    \end{enumerate}
+\end{definition}
+
+Following \cite{EPRINT:GarKiaLeo20}, we extract the quantitative relations between honest and adversarial hashing power during some consecutive rounds with length at least $\ell$ in \cref{lemma:hash-power-relation}.
+%
+Additionally, in order to extract the accumulated difficulty of profile blocks, we conclude the relationship between total difficulty acquired by all parties ($D(S) + A(J)$) and their hashing power in \cref{lemma:hash-power-relation}(d).
+
+\begin{lemma} \label{lemma:hash-power-relation}
+    Consider a typical execution in a $(\gamma, s)$-respecting environment.
+    %
+    Let $S = \{r : u \le r \le v \}$ be a set of at least $\ell$ consecutive good rounds and $J$ the set of adversarial queries in $U = \{ r : u - \delay \le r \le v + \delay\}$.
+    %
+    \begin{enumerate}[label=(\alph*), leftmargin=*, nosep]
+        \item $(1 + \epsilon) p|J| \le Q(S) \le D(U) < (1 + 5\epsilon) Q(S)$.
+
+        \item $T(J) A(J) < \epsilon m/4(1 + \delta)$ or $A(J) < (1 + \epsilon)p|J|$; $\tau T(J) B(J) < \epsilon m/4(1 + \delta)$ or $B(J) < (1 + \epsilon) p|J|$.
+
+        \item If $w$ is a good round such that $|w - r| \le s$ for any $r \in S$, then $Q(S) > (1 - \epsilon)[1 - (1 + \delta) \gamma^2 f]^\delay |S| p n_w / \gamma$. If in addition $T(J) \ge T^{\min}_w$, then $A(J) < (1 - \delta + 3\epsilon) Q(S)$.
+
+        \item If $w$ is a good round such that $|w - r| \le s$ for any $r \in S$ and $T(J) \ge T^{\min}_w$, then $D(S) + A(J') < (1 + \epsilon) p(h(S) + |J'|)$ where $J'$ denotes the set of adversarial queries in $S$.
+    \end{enumerate}
+\end{lemma}
+
+\begin{proof}
+    For the proof of items (a)(b)(c), we refer to \cite{EPRINT:GarKiaLeo20}.
+    %
+    Regarding \cref{lemma:hash-power-relation}(d), note that we are under the same condition as that in \cref{lemma:hash-power-relation}(c), we have
+    %
+    \[ A(J') < A(J) < (1 - \delta + 3\epsilon) Q(S) \le (1 - \delta + 3\epsilon) (1 + \epsilon) p h(S) < (1 - \delta + 3\epsilon) (1 + \epsilon) (1 - \delta) p |J'| < (1 + \epsilon) p |J'|. \]
+    %
+    The second inequality follows \cref{lemma:hash-power-relation}(c); the third one comes from \cref{def:typical-execution}(a); the last inequality is a consequence of Condition~\eqref{condition:error-absorb}.
+
+    By combining the upper bound on $A(J')$ with $D(S) < (1 + \epsilon) p h(S)$ (which comes from the definitions) we get the desired inequality.
+\end{proof}
+
+We claim that almost all executions that are polynomially bounded in $\kappa$ and $\lambda$ are typical.
+
+\begin{theorem} \label{thm:typical-execution}
+    Assuming the ITM system $(\Z, C)$ runs for $L$ steps, the probability of the event ``\E is not typical'' is bounded by $\mathsf{poly}(L)(e^{-\lambda} + 2^{-\kappa})$.
+\end{theorem}
+
+\begin{proof}
+    \cref{def:typical-execution} extends the definition of typical executions in \cite{EPRINT:GarKiaLeo20} by adding item (b).
+    %
+    Hence regarding the proof of item (a)(c)(d) in \cref{def:typical-execution}, we refer to \cite{EPRINT:GarKiaLeo20}.
+    %
+    In this proof we only consider \cref{def:typical-execution}(b) and the eventual error probabilities.
+
+    Fix a transaction \tx and its associated $\varphi$ fraction alert parties.
+    %
+    Fix a set of $R \ge 2\ell$ consecutive rounds $S = s_1, s_2 \ldots, s_R$ and let $h_j, j \in [R]$ denote the number of honest queries make during round $s_j$.
+    %
+    We work on per query that $\varphi$ fraction of honest parties make during $S$.
+    %
+    Let $J$ denote the queries (made by $\varphi$ fraction of honest parties) in $S$, $\nu = |J| \ge \varphi h(S)$, and $Z_i$ the difficulty of any block obtained from query $i$. Consider the sequence of random variables
+    %
+    \[ X_0 = 0; X_k = \sum_{i \in [k]} Z_i - \sum_{i \in [k]} \EX [Z_i | \E_{i - 1}], k \in [\nu]. \]
+    %
+    This is a martingale sequence with respect to sequence $(\E_0, \E_1, \ldots, \E_\nu)$ in that
+    %
+    \begin{equation*} \label{eq:martingale-details}
+        \EX [X_k | \E_{k - 1}] = \EX [Z_k - \EX [Z_k | \E_{k - 1}] | \E_{k - 1}] + \EX [X_{k - 1} | \E_{k - 1}] = X_{k - 1}.
+    \end{equation*}
+    %
+    The last equation follows the linearity of conditional expectation and the fact that $ X_{k - 1}$ is a deterministic function with respect to $\E_{k - 1}$.
+
+    Regarding the details relevant to \cref{thm:martingale-bound}, we pick $t$ as
+    %
+    \[ \epsilon \sum_{i \in [\nu]} \EX [Z_i | \E_{i - 1} = E_{i - 1}] \ge \epsilon \varphi \sum_{j \in [R]} p h_j = \epsilon \varphi p h(S) \defeq t \]
+    %
+    and consider an execution satisfying $G_t$.
+    %
+    Fix $i \in [\nu]$, let $j$ be the round $s_j$ that query $i$ belongs to.
+    %
+    Let
+    %
+    \[ Z_i - \EX [Z_i | \E_{i - 1} = E_{i - 1}] \le \frac{1}{T^{\min}_j} = \frac{p h_j}{p h_j T^{\min}_j} \le \frac{\gamma p h(S)}{p h_j T^{\min}_j R} \le \frac{\gamma p h(S)}{fR / (2\gamma^2)} = \frac{2\gamma^3 t}{\epsilon \varphi f R} \defeq b \]
+    %
+    and we see that the event $G$ implies $X_k - X_{k - 1} \le b$.
+    %
+    To get the bound on $V$, note that
+    %
+    \[  \Var (X_k - X_{k - 1} | \E_{k - 1}) = \EX[(Z_i - \EX [Z_i | \E_{i - 1}])^2 | \E_{k - 1}] \le \EX [Z^2_i | \E_{k  -1}]. \]
+    %
+    Hence, based on the independence of random variables as well as \cref{fact:fluctuation-fact}(c), we pick $v$ as
+    %
+    \begin{align*}
+        \sum_{k \in [\nu]} & \EX [Z^2_i | \E_{k - 1} = E_{k - 1}] \le \varphi \sum_{j \in [R]} \sum_{i \in [h_j]} \frac{1}{T_i^2} \cdot p T_i
+        = \varphi \sum_{j \in [R]} \frac{p h_j}{T^{\min}_j}
+        \\
+                           & = \varphi \sum_{j \in [R]} \frac{(p h_j)^2}{p h_j T^{\min}_j}  \le \frac{2\varphi \gamma^2}{f} \sum_{j \in [R]} (p h_j)^2 \le \frac{2\varphi \gamma^3}{f R} \cdot (p h(S))^2 \le
+        \frac{2 \gamma^3 t^2}{\epsilon^2 \varphi f R} \defeq v.
+    \end{align*}
+
+    In view of these bounds (note that $bt = \epsilon v$), by \cref{thm:martingale-bound}, we have
+    %
+    \[ \Pr [-X_\nu \ge t \wedge G_t] \le \exp \Big\{ -\frac{t^2}{2v (1 + \frac{\epsilon}{3})} \Big\} \le \exp \Big\{ -\frac{\epsilon^2 \varphi f R}{4\gamma^3 (1 + \frac{\epsilon}{3})} \Big\} \le e^{-\lambda}. \]
+    %
+    Note that the last inequality comes from Condition~\eqref{condition:min-length} and $\varphi$ vanishes since Condition Condition~\eqref{condition:order-fairness-param} implies that $\varphi > 1/2$.
+
+    The above arguments also applies, when we fix a transaction preference pair $\tx, \tx'$.
+    %
+    Now consider the execution that runs for $L$ steps.
+    %
+    The total number of transactions is bounded by $\mathsf{poly}(L)$; and the total number of preference pairs is bounded by $\mathsf{poly}(L)$ as well.
+    %
+    Regarding the preference pairs notice that they grow quadratically with the number of transactions hence remain a polynomial function of the running time.
+    %
+    We get
+    %
+    \begin{equation} \label{eq:error-prob-ds-lower-bound}
+        \Pr[\text{failure of \cref{def:typical-execution}(b)}] = 1 - (1 - e^{-\lambda})^{\mathsf{poly}(L)} \le \mathsf{poly}(L) e^{-\lambda}.
+    \end{equation}
+
+    Combining \cref{eq:error-prob-ds-lower-bound} and those error probabilities in \cite{EPRINT:GarKiaLeo20}, we get asymptotically the same result. I.e., the probability that ``\E is not typical'' is bounded by $\mathsf{poly}(L)(e^{-\lambda} + 2^{-\kappa})$.
+\end{proof}
+
+\paragraph{Security properties of the \Taxis blockchain from \cite{EPRINT:GarKiaLeo20}.}
+%
+We briefly describe the blockchain security properties common prefix and chain quality, which applies to the blockchain (i.e., chain of ledger blocks) in \Taxis.
+%
+Notably, common prefix is defined by pruning blocks according to their timestamps.
+
+\begin{cccItemize}[noitemsep]
+    \item \textbf{Common Prefix} $(\mathsf{CP})$ with parameter $k \in \mathbb{N}$.
+    %
+    For any two alert parties $\party_1, \party_2$ holding chains $\chain_1, \chain_2$ at rounds $r_1, r_2$, with $r_1 \le r_2$, it holds that $\chain_1^{\lceil k} \preccurlyeq \chain_2$.
+    \item \textbf{Chain Quality} $(\mathsf{CQ})$ with parameter $k \in \mathbb{N}$ and $\mu \in [0, 1]$.
+    %
+    For any party \party with chain \chain and any segment of that chain of difficulty $d$ such that the first block of the segment was computed at least $k$ rounds earlier than the last block, the blocks the honest parties have contributed in the segment have total difficulty at least $\mu \cdot d$.
+\end{cccItemize}
+
+While we introduce 2-for-1 PoW to produce profile blocks and collect them later, the \Taxis blockchain is still of the same structure as Bitcoin backbone protocol \cite{EC:GarKiaLeo15,C:GarKiaLeo17}, thus achieving blockchain properties remains the same as the analysis in \cite{EPRINT:GarKiaLeo20}.
+%
+Hence, for these two properties, we refer to \cite{EPRINT:GarKiaLeo20}.
+%
+When appropriately parameterized, blockchain in \Taxis satisfies these two security properties except with probability negligibly small in $\kappa$.
+%
+In addition, the same argument stands for those predicates defined in \cref{def:security-predicate}.
+
+\begin{theorem}[Security of \Taxis blockchain]
+    In a typical execution and $(\gamma, s)$-respecting environment, if Conditions \eqref{condition:min-length} and \eqref{condition:error-absorb} are satisfied, then the \Taxis blockchain satisfies common prefix with parameter $k = \ell + 2\delay$ and chain quality with parameters $\ell + 2\delay$ and $\delta - 3\epsilon$.
+    %
+    Meantime, all predicates of \cref{def:security-predicate} hold.
+\end{theorem}

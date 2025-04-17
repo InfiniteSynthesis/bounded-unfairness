@@ -1,0 +1,150 @@
+\subsection{Properties of Profile Blocks and Median Timestamp}
+\label{subsec:properties-profile-blocks-median-timestamp}
+
+In this section we focus on the properties of profile blocks collected in the \Taxis blockchain.
+%
+We first show that thanks to the freshness introduced by block hash in the settled blockchain and the recency parameter $R$, the adversary cannot start to mine profile blocks containing a specific transaction \tx much earlier than the beginning of \tx's \PBWindowLen-time-window.
+%
+Note that \cref{lemma:tx-freshness} holds also for those adversarial transactions.
+
+\begin{lemma} \label{lemma:tx-freshness}
+    In a typical execution and $(\gamma, s)$-respecting environment, consider a transaction \tx.
+    %
+    Suppose $r$ is the timestamp of the earliest ledger block that contains a profile block with \tx.
+    %
+    Then, the adversary mined profile blocks containing \tx no earlier than $r - 4(\ell + 2\delay)$.
+\end{lemma}
+
+\begin{proof}
+    For the sake of a contradiction, suppose the
+    adversary mined such a block at round $r' < r - 4(\ell + 2\delay)$.
+    %
+    We show that this implies the happening of prediction (cf.~\cref{def:insertion-copy-prediction}) or the violation of either \textsc{CommonPrefix} or \textsc{Accurate}, contradicting the execution being typical.
+
+    Let \PB denote the first profile block with \tx.
+    %
+    Since \PB is considered ``recent'' with respect to the ledger block with timestamp $r$, \PB should point to a ledger block \LB with timestamp $\timestamp{\LB} \ge r - 3\ell + 6\delay$.
+    %
+    We write the creation time of \LB as $r_\LB$.
+    %
+    We have $r_\LB \ge r - 4(\ell + 2\delay)$; otherwise, it violates \textsc{Accurate} in that \LB's timestamp deviates from its creation time for more than $\ell + 2\delay$ rounds.
+    %
+    However, since the creation time of \LB is $r'_\LB \ge r - 4(\ell + 2\delay)$, \adv start to mine \PB at round $r' < r - 4(\ell + 2\delay)$ using \LB's block hash implies a happening of prediction because \adv successfully extends a block before its creation time.
+    %
+    This concludes our proof.
+\end{proof}
+
+Next, we show that, in a typical execution, the profile blocks (weighted in terms of their difficulty) that $\varphi$ fraction of honest parties ($\varphi$ satisfies Condition~\eqref{condition:order-fairness-param}) can produce is proportional to their relative hashing power, except with some well-bounded disadvantage $5\epsilon$.
+%
+Note that this result directly implies $\varphi$ fraction of honest parties will accumulate more than half of the total difficulty (i.e., more difficulty than the coalition of the rest of honest parties and the adversary).
+
+\begin{lemma} \label{lemma:honest-tb-majority}
+    In a typical execution and $(\gamma, s)$-respecting environment, assuming all the conditions are satisfied, consider a transaction \tx.
+    %
+    Let $r$ be the timestamp of the earliest ledger block containing \tx, and $d$ the total difficulty of profile blocks containing \tx which are included in a ledger block with timestamp $r'$ such that $r \le r' \le r + \PBWindowLen$.
+    %
+    We have (i) $\varphi$-fraction of honest parties mined profile blocks with total difficulty at least $d / 2$; and (ii) for any transaction $\tx'$, $\varphi$-fraction of honest parties mined profile blocks of $\tx', \tx$ with total difficulty at least $d / 2$.
+\end{lemma}
+
+\begin{proof}
+    Let \chain denote a chain held by an honest party at round $r + \PBWindowLen + (\ell + 2\delay)$.
+    %
+    Let $S_0 = \{u : r \le u \le r + \PBWindowLen \}$ denote the valid timestamp set for ledger blocks that include timestamp blocks with \tx.
+    %
+    Let \LB be the last block produced by honest parties before round $r + \PBWindowLen$ and denote its timestamp by $r_\LB$.
+    %
+    Since \chain will become stale if there is no honest block from $r_\LB + \PBWindowLen - (\ell + 2\delay)$ for $\ell + 2\delay$ rounds, we get that $r + \PBWindowLen - (\ell + 2\delay) < r_\LB \le r + \PBWindowLen$.
+
+    Let $S_1 = \{u : r + (\ell + 2\delay) \le u \le r_\LB - \delay \}$ and $S_2 = \{u : r - 4(\ell + 2\varDelta) \le u \le r_\LB + \ell + 2\delay \}$.
+    %
+    $S_1$ is the time interval for all honest parties to mine profile blocks with \tx; and $S_2$ is for the adversary.
+    %
+    The lower bound of $S_1$ is derived from the fact that every honest party will learn the earliest ledger block after $(\ell + 2\delay)$ rounds after its timestamp, and the upper bound is because all timestamp blocks will take up to \delay rounds to diffuse to all honest parties.
+    %
+    The lower bound of $S_2$ is acquired due to the unpredictability discussed in \cref{lemma:tx-freshness}.
+    %
+    Regarding the upper bound of $S_2$, it is achieved by considering the first honest block $\LB'$ after $r_\LB + \PBWindowLen$, which will have timestamp $r_{\LB'} < r_\LB + \ell + 2\delay$ (otherwise it violates \textsc{NoStaleChains}).
+    %
+    The adversary cannot produce blocks in $S_0$ after $r_{\LB'}$ as it can no longer revert $\LB'$, so all the subsequent timestamp blocks produced after $r_{\LB'}$ are invalid w.r.t. the current chain.
+
+    Let $J$ denote the adversarial queries associated with $S_2$.
+    %
+    We first consider item (i).
+    %
+    In order to prove that $\varphi$ fraction of honest parties can produce at least half of timestamp block difficulty, it suffices to show that $D^{\tx}(S_1) > d / 2$.
+
+    We show that the number of alert parties in $S_2$ is at most $4\epsilon$ more than that in $S_1$.
+    %
+    \[ h(S_2) \le (1 + \frac{\gamma |S_2 \backslash S_1| }{|S_1|}) h(S_1) \le \Bigg(1 + \frac{\gamma (5\ell + 10\delay)}{\PBWindowLen - (\ell + 3\delay)} \Bigg) h(S_1) < (1 + 5\epsilon) h(S_1). \]
+    %
+    The first inequality comes from \cref{fact:fluctuation-fact}(b); the second one follows the discussion above; the last one holds since by \cref{eq:window-length} we get $|S_1| \ge \PBWindowLen - (\ell + 3\delay) = \gamma (\ell + 3\delay) / \epsilon$.
+
+    Next, note that by combining Condition~\eqref{condition:min-length} with \cref{eq:window-length} we get $|S_2| \le \PBWindowLen + 5(\ell + 2\delay) \le (\gamma / \epsilon + 6)(\ell + 3\delay) < 2\gamma (\ell + 3\delay) / \epsilon \le \frac{1}{2(1 + \delta) \gamma^2} \cdot \frac{m}{f}$.
+    %
+    This implies that during $S_2$, the blockchain will evolve at most two epochs, which satisfies the pre-condition of \cref{lemma:hash-power-relation}(d).
+    %
+    We get
+    %
+    \begin{align*}
+        D^{\tx} & \ge (1 - \epsilon) \varphi p h(S_1) > (1 - 6\epsilon)\varphi p h(S_2) > (1 - 6\epsilon) \frac{\varphi}{2 - \delta} p [h(S_2) + |J|]                                     \\
+                & > (1 - 7\epsilon) \frac{\varphi}{2 - \delta} [D(S_2) + A(J)] >  (1 - 7\epsilon) \frac{\varphi}{2 - \delta} [D(S_1) + A(J)] > \frac{1}{2} [D(S_1) + A(J)] = \frac{d}{2}.
+    \end{align*}
+    %
+    The first inequality comes from the typical execution (cf. \cref{def:typical-execution}); the second one is achieved by substituting $h(S_1)$ with $h(S_2)$; the next inequality follows the honest majority setting; and the forth one is by applying \cref{lemma:hash-power-relation}(d); the last inequality holds due to Condition~\eqref{condition:order-fairness-param}.
+
+    Regarding item (ii), we associate a transaction pair $\tx', \tx$ with a set of $\varphi$ fraction honest parties and get the same result.
+\end{proof}
+
+\cref{lemma:honest-tb-majority} implies that, first, the median timestamp $\med(\tx)$ of \tx in the \PBWindowLen-time-window is within the \txDelay rounds that \tx is disseminated to all honest parties; and second, if $\tx' \before^\varphi \tx$, then in the dependency graph $G$ in an honest party's view after both $\tx, \tx'$ are in \txpool, there will be an edge $(\tx', \tx)$ in $G$.
+
+\begin{lemma} \label{lemma:median-timestamp}
+    In a typical execution and $(\gamma, s)$-respecting environment, consider a \txDelay-disseminated transaction \tx.
+    %
+    Let $r$ denote the least round that \tx is received by at least one honest party.
+    %
+    The weighted median timestamp associated with \tx in its \PBWindowLen-time-window satisfies $r \le \med(\tx) < r + \txDelay$.
+\end{lemma}
+
+\begin{proof}
+    Suppose $\med(\tx) < r$ or $\med(\tx) \ge r + \txDelay$, which means that there exist profile blocks with more than half of the total difficulty that report a timestamp earlier than $r$ or no earlier than $r + \txDelay$.
+    %
+    This contradicts the fact that the difficulty of profile blocks containing \tx and reporting a timestamp $t$ of \tx such that $r \le t < r + \txDelay$ constitutes at least half of the total difficulty, according to \cref{lemma:honest-tb-majority}.
+\end{proof}
+
+\begin{lemma} \label{lemma:edge-in-graph}
+    In a typical execution and $(\gamma, s)$-respecting environment, consider two transactions $\tx, \tx'$ such that $\tx \before^\varphi \tx'$.
+    %
+    Let $r$ be the time such that both the \PBWindowLen-time-window of $\tx$ and $\tx'$ are in \txpool, and let $G = (V, E)$ denote the dependency graph at round $r$ in an honest party's view.
+    %
+    It holds that $(\tx, \tx') \in E$.
+\end{lemma}
+
+\begin{proof}
+    \cref{lemma:honest-tb-majority} implies that in the \PBWindowLen-time-window of both $\tx$ and $\tx'$, majority of the profile blocks (counted by their accumulated difficulty) will report $\tx \before \tx'$.
+    %
+    At a round that $\tx' \in \txpool$, an edge $(\tx ,\tx')$ will be added to $G$.
+    %
+    Moreover, at a round that $\tx \in \txpool$, it will not add edge $(\tx', \tx)$ to $G$ or remove $(\tx, \tx')$ if it exists.
+    %
+    This concludes our proof.
+\end{proof}
+
+\begin{lemma} \label{lemma:window-apart}
+    In a typical execution and $(\gamma, s)$-respecting environment, if a transaction \tx is associated with a \PBWindowLen-time-window starting at time $r$, then for every transaction $\tx'$ such that $\tx \before^\varphi \tx'$ is false (either  $\tx' \before^\varphi \tx$ or incomparable), $\tx'$ is associated with a \PBWindowLen-time-window starting at time $r' \le r + 3\ell + 7\delay + 2\txDelay$.
+\end{lemma}
+
+\begin{proof}
+    Suppose $t$ is the earliest round such that \tx is received by at least one honest party.
+    %
+    Since all transactions are \txDelay-disseminated, for every $\tx'$ such that  $\tx \before^\varphi \tx'$ is false, $\tx'$ is received by at least one honest party no later than $t + \txDelay$ (otherwise $\tx'$ must be at a later position in all profiles).
+
+    We have $r \ge t - (\ell + 2\delay)$, since a ledger block with timestamp $r$ should be learnt by all honest party before round $r + \ell + 2\delay$.
+    %
+    Next, we consider a $\tx'$ such that $\tx' \before^\varphi \tx$ and its \PBWindowLen-time-window starting at time $r'$.
+    %
+    $\tx'$ will be received by all honest parties no later than $r + 2\txDelay$, since it is \txDelay-disseminated.
+    %
+    Moreover, due to chain quality, there will be at least one profile block \PB containing \tx produced at time before $r + 2\txDelay + \ell + 2\delay$; and \PB will be included in a ledger block with time $r' \le r + 2\txDelay + 2\ell + 5\delay$ (again because of chain quality and it takes up to \delay rounds to diffuse \PB to all honest parties).
+    %
+    This concludes our proof.
+\end{proof}

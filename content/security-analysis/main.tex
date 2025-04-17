@@ -1,0 +1,12 @@
+\section{Security Analysis}
+\label{sec:security-analysis}
+
+In this section we provide a security analysis of the \Taxis protocol.
+%
+We show that, in a $(\gamma, s)$-respecting environment, when appropriately parameterized, the ledger \ledger in \Taxis satisfies three security properties---consistency, liveness and order fairness.
+
+The first two properties have been introduced in \cref{subsec:protocol-execution-model}; regarding the order fairness property, it requires that the protocol implements $(\varphi, \TDBW)$-fair-order serialization --- i.e., in the settled part of the final ledger, all the transactions will follow the order defined by \cref{def:varphi-tdbw-order-fairness}.
+
+\input{content/security-analysis/preliminary-results}
+\input{content/security-analysis/properties-profile-blocks}
+\input{content/security-analysis/consistency-liveness-order-fairness}

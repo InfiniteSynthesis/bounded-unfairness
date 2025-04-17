@@ -1,0 +1,113 @@
+\subsection{Consistency, Liveness and Order-Fairness}
+
+We prove that the ledger \ledger of \Taxis satisfies three desired properties.
+%
+For consistency, parties have to remove a suffix of transactions from their local ledger \ledger according to the starting point of their \PBWindowLen-time-window.
+%
+More specifically, suppose the consistency parameter is $k_\ledger$.
+%
+At round $r$ parties remove transactions in \ledger such that the settled part does not contain transactions with \PBWindowLen-time-window starting after $r - k_\ledger$.
+%
+Note that the beginning time of \PBWindowLen-time-window might not be monotonically increasing in \ledger, hence a transaction \tx whose time window starts before $r - k_\ledger$ might also be removed if a transaction with later starting point precedes \tx in \ledger (but parties should let the settled part contain as many transaction as possible).
+
+We say that a vertex $v$ in the condensed dependency graph $G^*$ is confirmed if all the transactions in $v$ have their \PBWindowLen-time-window in the settled part of the \Taxis blockchain and all their ancestors in $G^*$ have confirmed.
+
+\begin{theorem}[Consistency] \label{thm:consistency}
+    In a typical execution and $(\gamma, s)$-respecting environment, Consistency is satisfied by setting the settled transactions to be those reported more than $\PBWindowLen + 4\ell + 9\delay + 2\txDelay$ rounds deep.
+\end{theorem}
+
+\begin{proof}
+    Consider two honest parties $\party_1, \party_2$ reporting $\ledger_1, \ledger_2$ at rounds $r_1 \le r_2$, respectively.
+    %
+    For the sake of a contradiction, suppose after removing all unsettled transactions from $\ledger_1, \ledger_2$ it holds that $\ledger_1 \not\preceq \ledger_2$, and let $\tx_1, \tx_2$ denote the transaction in $\ledger_1$ and $\ledger_2$ after the fork respectively.
+    %
+    Let $G_r$ denote the dependency graph at round $r$ and $G^*_r$ its condensation graph, and $v_1, v_2$ the vertices in $G^*_r$ that contains $\tx_1, \tx_2$ correspondingly.
+
+    Since transactions are more than $\PBWindowLen + 4\ell + 9\delay + 2\txDelay$ rounds deep and \txpool contains transactions that are $\PBWindowLen + \ell + 2\delay$ round deep, by considering \cref{lemma:window-apart}, it holds that for a transaction $\tx_1$ ($\tx_2$ resp.) in the settled part of \ledger, if $\tx_2 \before^\varphi \tx_1$ ($\tx_1 \before^\varphi \tx_2$ resp.) then $\tx_2$ ($\tx_1$ resp.) will be in \txpool.
+
+    If $\tx_1$ and $\tx_2$ are not in the same cycle, we have $v_1 \neq v_2$ and consider three scenarios.
+    %
+    (i) Suppose $\tx_1 \before^\varphi \tx_2$, at round $r_2$ since $\tx_2 \in \ledger$ we have $\tx_1 \in \txpool$.
+    %
+    And, an edge $(v_1, v_2)$ must exist in $G$ because of \cref{lemma:edge-in-graph}.
+    %
+    This contradicts the fact that $\ledger_2$ report $\tx_2$ before $\tx_1$, as $(v_1, v_2)$ implies that $\tx_1$ must be ordered before $\tx_2$.
+    %
+    (ii) Suppose $\tx_2 \before^\varphi \tx_1$, at round $r_1$ since $\tx_1 \in \ledger$ we have $\tx_2 \in \txpool$.
+    %
+    And, an edge $(v_2, v_1)$ must exist in $G$ because of \cref{lemma:edge-in-graph}.
+    %
+    This contradicts the fact that $\ledger_1$ report $\tx_1$ before $\tx_2$.
+    %
+    (iii) We suppose $\tx_1, \tx_2$ are incomparable.
+    %
+    Consider $G_{r_1}$ it holds that both $\tx_1, \tx_2$ are in \txpool.
+    %
+    For all round $r \ge r_1$, the existence and orientation of edge between $\tx_1, \tx_2$ are the same as that at round $r_1$.
+    %
+    If $(\tx_1, \tx_2) \in G_{r_1}$, then it contradicts the fact that $\ledger_2$ reports $\tx_2$ before $\tx_1$ at round $r_2$;
+    %
+    if  $(\tx_2, \tx_1) \in G_{r_1}$, then it contradicts the fact that $\ledger_1$ reports $\tx_1$ before $\tx_2$ at round $r_1$;
+    %
+    and if no edge exists, $\ledger_1$ reports $\tx_1$ before $\tx_2$ implies that the beginning time of the \PBWindowLen-time-window of $\tx_1$ is earlier than that of $\tx_2$, again this contradicts the fact that $\ledger_2$ reports $\tx_2$ before $\tx_1$.
+
+    If $\tx_1$ and $\tx_2$ are in the same cycle, we have $v_1 = v_2$.
+    %
+    Note that after the completion of an SCC (completion means that all transactions in SCC are confirmed), no vertices can be added or removed.
+    %
+    This is because if a vertex is added, it implies that some vertices in the SCC are waiting for other transactions, contradicting that SCC is complete; if a vertex is removed, then it implies some of the vertices in the SCC contains the transaction that are not in \txpool.
+    %
+    Suppose the cycle is small, we directly get the contradiction in that \cref{algorithm:directed-bandwidth} is deterministic.
+
+    Now, suppose that the cycle is large and it runs the fallback mechanism in~\cref{algorithm:taxis-extract-transaction-order}.
+    %
+    And consider a transaction \tx in this cycle with \PBWindowLen-time-window starting at round $r$.
+    %
+    \cref{lemma:window-apart} guarantees that all transactions that might have a median timestamp earlier than \tx will start their \PBWindowLen-time-window no later than $3\ell + 7\delay + 2\txDelay$, since \cref{lemma:median-timestamp} implies that the median timestamp will fall in the \txDelay-dissemination window.
+    %
+    Hence, when \tx is still in $V_{\mathsf{unconfirmed}}$ at round $r + \PBWindowLen + 4\ell + 9\delay + 7\txDelay$, it implies that a cycle spans for more than $3\txDelay$ rounds exist.
+    %
+    And by outputting transactions with an increasing order on their median timestamps up to \tx, we get that the output at the ongoing of this long cycle is consistent.
+    %
+    When tracing back at the future rounds, note that for \tx to be in $V_{\mathsf{unconfirmed}}$ at round $r + \PBWindowLen + 4\ell + 9\delay + 7\txDelay$, there must exist a $\tx'$ such that its \PBWindowLen-time-window starts no earlier than $r + 3\ell + 7\delay + 7\txDelay$ which will pass the check in Line~\ref{code:long-cycle-check} in \cref{algorithm:taxis-extract-transaction-order} and always output the same order due to the median timestamp rule.
+\end{proof}
+
+\begin{theorem}[Liveness] \label{thm:liveness}
+    In a typical execution and $(\gamma, s)$-respecting environment, Liveness is satisfied for wait time $\PBWindowLen + 6\ell + 14\delay + 7\txDelay$ rounds.
+\end{theorem}
+
+\begin{proof}
+    Let $r$ denote the least round such that \tx is learnt by all alert parties.
+    %
+    Similar to the argument in \cref{lemma:window-apart} we get that \tx and its \PBWindowLen-time-window will start with a timestamp no later than $r + 2\ell + 5\delay$.
+    %
+    Since the fallback in \cref{algorithm:taxis-extract-transaction-order} guarantees that \tx is forcibly inserted into \ledger after remaining in the dependency graph for more than $\varDelta_{\mathsf{timeout}}$ rounds, by considering \cref{eq:window-length} we get $\PBWindowLen + 6\ell + 14\delay + 7\txDelay$, this completes the proof of liveness.
+\end{proof}
+
+\begin{theorem}[Order-Fairness] \label{thm:fairness}
+    In a typical execution and $(\gamma, s)$-respecting environment, \Taxis implements $(\varphi, \TDBW)$-fair-order serialization.
+\end{theorem}
+
+\begin{proof}
+    Fix an execution $E$ and honest profiles $\profileSet^\honestPartySet$.
+    %
+    Consider the dependency graph $G$ in an honest party's view at the end of the execution.
+    %
+    \cref{lemma:edge-in-graph} shows that all edges in $G_{\profileSet^\honestPartySet, \varphi}$ will be in $G$.
+    %
+    I.e., $G$ is a spanning supergraph of $G_{\profileSet^\honestPartySet, \varphi}$.
+    %
+    It suffices to prove that there exist $\profileSet^\adv$ such that the $(\langle \profileSet^\honestPartySet, \profileSet^\adv \rangle)$-dependency graph is exactly $G$.
+    %
+    Note that $\profileSet^\honestPartySet$ in \PBWindowLen rounds are proportional to the profile blocks mined with timestamps fall in these \PBWindowLen rounds.
+    %
+    Their exist some $\profileSet^\adv$ that is also proportional to the adversarial profile blocks mined in this time period.
+
+    Note that by considering \cref{lemma:window-apart} and $\varDelta_{\mathsf{timeout}}$ in \cref{eq:window-length}, we get that any cycle that passes the fallback check has vertices with timestamp difference more than $5\txDelay$ rounds.
+    %
+    Since the adversarial manipulation on the transaction is up to \txDelay rounds, this implies that there exist at least two transactions in the cycle such that the first time that they are delivered to an honest party is at least $3\txDelay$ apart.
+    %
+    Combining this result with \cref{thm:dbw-partition,thm:dbw-timestamp-order} we learn that their order follows \cref{def:varphi-tdbw-order-fairness}.
+    %
+    This concludes the proof.
+\end{proof}
