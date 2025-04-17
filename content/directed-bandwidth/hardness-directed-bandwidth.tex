@@ -1,0 +1,60 @@
+\subsection{Hardness of DirectedBandwidth over Oriented Graphs}
+\label{subsec:hardness-of-directedbandwidth}
+
+In this section we consider the hardness of \textsc{DirectedBandwidth} over oriented graphs.
+%
+With respect to the \textsc{Bandwidth} problem the following result of Dubey, Feige, and Unger is of interest.
+
+\begin{theorem}[\cite{JCSS:DFU11}]
+    It is $\NP$-hard to approximate \textsc{Bandwidth} within a ratio of $c$, for any constant $c > 0$.
+\end{theorem}
+
+We provide the same result for \textsc{DirectedBandwidth} over oriented graphs.
+
+\begin{theorem}
+    It is $\NP$-hard to approximate \textsc{DirectedBandwidth} over oriented graphs within a ratio of $c$, for any constant $c > 0$.
+\end{theorem}
+
+\begin{proof}
+    It suffices to show how to approximate \textsc{Bandwidth} within a constant, assuming we can approximate \textsc{DirectedBandwidth} over any oriented graph.
+    %
+    Let $G = (V, E)$ be a simple connected graph with bandwidth $b$.
+    %
+    We define an oriented graph $G' = (V \cup V', E')$, where $V' = \{u' : u \in V \}$ and $E'=\{uu' : u \in V \} \cup \{ u'v : uv \in E \}$.
+    %
+    We call each $u \in V$ the parent of $u'$, $V$ the parent nodes and $V'$ the
+    child nodes.
+    %
+    Note that since $G$ is undirected, for each $uv \in E$, both $u'v$ and $v'u$
+    are in $E'$.
+    %
+    We claim that the bandwidth of $G$ at most twice the bandwidth of $G'$.
+
+    We first observe that the bandwidth of $G'$ is at most $b$.
+    %
+    Indeed, let $\pi = (u_1, u_2, \dots, u_n)$ be a permutation of $V$ with
+    bandwidth $b$ in $G$.
+    %
+    We construct a permutation $\pi'$ of $V\cup V'$ with bandwidth $b$ in $G'$.
+    %
+    Set $q = \lfloor n / b \rfloor$ and $r = n \mod b$.
+    %
+    For $k = 0, 1, \dots, q - 1$, let
+    %
+    \[ \sigma_k = (u'_{qb + 1}, \dots, u'_{qb + b}, u_{qb + 1}, \dots, u_{qb + b}) ~~\text{and}~~ \pi' = \sigma_0 \cdots \sigma_q, \]
+    %
+    where $\sigma_q = (u'_{qb + 1}, \dots, u'_{qb + r}, u_{qb + 1}, \dots, u_{qb + r})$.
+    %
+    To verify that $\DBW(\pi', G') \le b$, consider any edge $uv \in E$; edge $uu'$ has length either $b$ or $r < b$ and edge $u'v$ is either a forward
+    edge or has the same length as $uv$ under $\pi$.
+
+    Now let $\sigma$ be a permutation of $V\cup V'$ with bandwidth $b'$.
+    %
+    We can construct a permutation $\pi$ for $V$ by simply removing the child nodes.
+    %
+    The bandwidth of $\pi$ is at most $2b'$.
+    %
+    It follows that if $b'\le c b$, then we obtain a permutation of $V$ with bandwidth $2c b$.
+    %
+    In other words, if we can approximate \textsc{DirectedBandwidth} within ratio $c$, then we can approximate \textsc{Bandwidth} within ratio $2c$.
+\end{proof}

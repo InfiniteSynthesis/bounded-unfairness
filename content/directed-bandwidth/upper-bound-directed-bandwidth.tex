@@ -1,0 +1,78 @@
+\subsection{Upper Bound on Worst Case DirectedBandwidth}
+\label{subsec:upper-bound-on-worst-case-directed-bandwidth}
+
+Define $\DBW(n)=\max_{G}B(G)$, where $G$ over the set of oriented graphs on
+$n$ nodes.
+%
+The following theorem concerns Zarankiewicz's problem.
+
+\begin{theorem}
+    [\cite{Bollobas78}; Theorem~2.5, p.~311]
+    \label{thm:zarankiewicz}
+
+    For all natural numbers $2 \le a \le n$, any bipartite graph with parts of
+    size $n$ and more than $(a - 1)^{1 / a} n^{2 - 1 / a} + (a - 1)n / 2$ edges contains at least one $a \times a$ clique.
+\end{theorem}
+
+We call a pair $(S,T)$ of two disjoint sets of nodes of a digraph a \emph{one-way} pair, if there are no edges from a node in $T$ to a node in
+$S$.
+%
+The relation to this problem is captured in the following observation.
+
+\begin{proposition}
+    Consider a digraph $G=(V,E)$ on $n$ nodes.
+    %
+    If there is a permutation on the nodes of $G$ with no back edges of length more than $B$, then there is a one-way pair $(S, T)$ with $|S| = |T| = \lfloor (n - B) / 2 \rfloor$.
+    %
+    Conversely, if there is a one-way pair $(S, T)$ with $|S| = |T| = n - B$, then there is a permutation on the nodes of $G$ with no back edges of length
+    at least $B$.
+\end{proposition}
+
+\begin{proof}
+    Let $S$ be the set of the first $\lfloor{(n-B)}/{2}\rfloor$ nodes of $\pi$
+    and $T$ the set of the last so many nodes.
+\end{proof}
+
+\begin{theorem}
+    Let $\mathbb{G}_n$ denote the set of all oriented graphs with $n$ vertices.
+    %
+    It holds that
+    %
+    \[ n - 4\log n < \max_{G \in \mathbb{G}_n} \DBW(G) < n - \log n / 2. \]
+\end{theorem}
+
+\begin{proof}
+    Note that for both bounds we may restrict attention to tournament graphs.
+    %
+    To prove the lower bound, it suffices to show that there exists a tournament on $n$ nodes such that for any permutation there are back edges of length at least $B = n - 4\log(n)$.
+    %
+    We use a probabilistic argument, drawing intuition from Zarankiewicz's problem.
+
+    Set $k = \lfloor (n - B) / 2 \rfloor = \lfloor 2\log(n) \rfloor$.
+    %
+    For any two nodes $u, v$, choose $(u, v)$ or $(v, u)$ with probability 1/2 each.
+    %
+    There are $\binom{n}{k} \binom{n - k}{k}$ pairs of disjoint sets of size $k$.
+    %
+    Let $X$ be the number of such pairs of sets that have no edges from $T$ to
+    $S$.
+    %
+    Then, using $\binom{n}{k} \le (en / k)^k$,
+    \[ \mathbb{E}[X] =\binom{n}{k} \binom{n - k}{k}2^{-k^2} \le\Bigl( \frac{en}{k} \Bigr)^{k} \Bigl( \frac{e(n - k)}{k} \Bigr)^{k}2^{-k^2} < 1. \]
+    %
+    The last inequality holds because for the chosen value of $k$ and $n > 16$, $en < k 2^{k / 2}$ and so $(en / k)^k / 2^{k^2 / 2} < 1$.
+    %
+    It follows that there is a tournament with $X = 0$.
+    %
+    By the first part of the proposition above, a permutation with $B \le n - 4\log(n)$ does not exist for this tournament.
+
+    For the upper bound, by the second part of the proposition it suffices to show that for any tournament $G=([n],E)$ there is a one-way pair $(S,T)$ with $|S|=|T|=a$, where $a=\lceil\log(n)/2\rceil$.
+    %
+    To that end, construct a bipartite graph $G = (U, V, D)$ with $U = \{u_1, \dots, u_n \}$, $V = \{ v_1, \dots, v_n \}$ and $E = \{(u_i, v_j) : (i, j)\in E \}$.
+    %
+    Note that if $S \times T$ is a clique of this graph, then $(S, T)$ is a one-way pair.
+    %
+    By the second part of the proposition and \cref{thm:zarankiewicz}, it suffices to show that $(a - 1)^{1 / a} n^{2 - 1 / a} + (a - 1)n \le \binom{n}{2}$.
+    %
+    This indeed holds for the chosen value of $a$.
+\end{proof}

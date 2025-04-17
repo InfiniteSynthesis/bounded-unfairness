@@ -1,0 +1,143 @@
+\subsection{A Faster Algorithm for DirectedBandwidth over Dependency Graphs}
+\label{subsec:exact-algorithm-over-dependency-graphs}
+
+\cref{algorithm:directed-bandwidth} solves \textsc{DirectedBandwidth} over
+general graphs.
+%
+The most time-consuming factor lies at the stage that exhaustively iterates over
+subset of edges and sets them as forward ones;
+%
+on oriented graphs, this incurs an exponent that is quadratic in terms of the
+number of edges.
+
+While this blow-up arises from the hardness of the underlying problem, thus becomes impossible to improve in the worst case\footnote{For instance, the network is congested and a large number of transactions enter the system at roughly the same time and consequently all edges in  the dependency graph can  have either orientation.}, we present here that for a long-lasting Condorcet cycle, its dependency graph is of good structure when considered with the (bounded) transaction throughput and its directed bandwidth is relatively small compared with the number of vertices (see \cref{thm:dbw-partition}), hence leads to a new algorithm which, while still runs in exponential time, reduces the exponent of the most time-consuming factor from quadratic to linear in the number of vertices.
+
+As a high-level intuition of the structure of such type of graphs, consider a graph $G$ of long-lasting Condorcet cycles and a vertex $v \in G$.
+%
+Regarding all edges between $v$ and $v'$, if $v'$ is a vertex that enters the system earlier (later resp.) than $v$ and their diffusion window does not overlap, then due to the security of \Taxis protocols, it is guaranteed that an edge $(v' ,v)$ ($(v, v')$ resp.) appears in the dependency graph.
+%
+And we shall never set these edges as backward edges when applying a vertex ordering over the graph, as it incurs a directed bandwidth that is larger than the number of transactions diffused between $v$ and $v'$ (which is bounded by the transaction throughput) which contradicts \cref{thm:dbw-partition}.
+
+The main ideal of this algorithm follows that in \cite{FSTTCS:JKLSS19} with two extra steps:
+%
+(i) instead of iterating all possible subset of edges, we pre-select some edges and never consider setting them as backward edges in
+the final ordering;
+%
+and (ii) regarding the subroutine of solving \textsc{DAG-Bandwidth} by calling the bucketing and ordering algorithm in \cite{CygPil08,FSTTCS:JKLSS19}, we replace it with Saxe's algorithm \cite{SIAMMAX:Saxe80}, an algorithm that decides if \textsc{DAG-Bandwidth} is smaller than a (fixed) parameter in polynomial time.
+%
+We provide a detailed description in \cref{algorithm:directed-bandwidth-large-cycle}.
+
+Compared with \cref{algorithm:directed-bandwidth}, this new algorithm
+requires two extra inputs.
+%
+First, the median timestamp (in the \PBWindowLen-time-window) of each
+transaction.
+%
+This is represented as the a mapping \mapTimestamp from each vertex (transaction) to an
+integer (round number).
+%
+And second, a parameter $\txDelay^* \in \mathbb{N}^+$ as the threshold to select
+edges.
+%
+We require that $\txDelay^* \ge 3\txDelay$.
+%
+Note that while in our model \txDelay is a parameter that is unknown to parties,
+a rough estimation on \txDelay can be made by observing the transaction
+diffusion pattern; and, overestimation does not hurt the correctness of this
+algorithm but only incurs some penalty on its running time.
+
+\input{algorithms/directed-bandwidth-dependency}
+
+\paragraph{Correctness of \cref*{algorithm:directed-bandwidth-large-cycle}.}
+%
+It is obvious that for any graph $G$, as long as there exist bandwidth-optimal
+orderings such that all backward edges are in $E_{\mathsf{backward}}$,
+\cref{algorithm:directed-bandwidth-large-cycle} will output one of them
+due to the correctness of Saxe's algorithm.
+%
+Thus, correctness of \cref{algorithm:directed-bandwidth-large-cycle} follows
+\cref{lemma:correctness-dbw-specific-graph}.
+
+\begin{lemma} \label{lemma:correctness-dbw-specific-graph}
+    Let $G = (V, E)$ be a strongly connected component in the transaction dependency graph and \mapTimestamp be a mapping from each $v \in V$ to the median timestamp in its \PBWindowLen-time-window.
+    %
+    There exists an ordering $\orderOutput$ on $G$ such that (i) $\DBW(\orderOutput, G) = \DBW(G)$; and (ii) $\forall u, v \in V$, $\orderOutput(u) < \orderOutput(v) \implies \mapTimestamp(u) \le \mapTimestamp(v) + \txDelay^*$.
+\end{lemma}
+
+\begin{proof}
+    Let $\orderOutput'$ be a vertex ordering on $G$ such that (i) $\DBW(\orderOutput', G) = \DBW(G)$; and (ii) $\exists u, v \in V$ such that $\orderOutput(u) < \orderOutput(v)$ and $\mapTimestamp(u) > \mapTimestamp(v) + \txDelay^*$.
+    %
+    If no such $\orderOutput'$ exists then the lemma holds.
+    %
+    Otherwise we show that by swapping vertex pairs we can convert $\orderOutput'$ to \orderOutput such that both items (i) (ii) in the lemma holds on \orderOutput.
+
+    Let $E'_\orderOutput$ denote the set of backward edges in \orderOutput that violates item (ii) in the lemma.
+    %
+    I.e.,
+    %
+    \[ E'_\orderOutput = \{(v, u) \mathbin| (v, u) \in E \wedge \orderOutput(u) < \orderOutput(v) \wedge \mapTimestamp(u) > \mapTimestamp(v) + \txDelay^* \}. \]
+    %
+    Let $d(E'_\orderOutput)$ denote the maximum distance among all edges in $E'$ (i.e., $d(E'_\orderOutput) = \max_{(u, v) \in E'_\orderOutput} \{\orderOutput(v) - \orderOutput(u)\}$ or $0$ if $E'_\orderOutput$ is empty) and $m(E'_\orderOutput, d^*)$ denote the number of edges with distance $d^*$.
+    %
+    Note that $d(E'_\orderOutput) \le \DBW(E'_\orderOutput, G)$.
+    %
+    Obviously when there exist \orderOutput such that $\DBW(\orderOutput, G) = \DBW(G)$ and $d(E'_\orderOutput) = 0$ then the lemma holds.
+
+    Fix a bandwidth optimal ordering $\orderOutput'$ such that $d(E'_{\orderOutput'}) = d^* > 0$.
+    %
+    Let $u, v$ be two vertices such that $(v, u) \in E'_{\orderOutput'}$ and $\orderOutput'(v) - \orderOutput'(u) = d(E'_{\orderOutput'})$.
+    %
+    Consider a new ordering $\orderOutput''$ that differs from $\orderOutput'$ by swapping the position of $u ,v$.
+    %
+    We show that $\DBW(G, \orderOutput'') = \DBW(G)$ and, either $d(E'_{\orderOutput''}) < d(E'_{\orderOutput'})$, or $d(E'_{\orderOutput''}) = d(E'_{\orderOutput'}) = d^*$ but $m(E'_{\orderOutput''}, d^*) \le m(E'_{\orderOutput'}, d^*) - 1$.
+
+    Since only the position of $u, v$ is swapped, we consider edges with
+    endpoints either in $u$ or $v$.
+    %
+    Consider $v$ first.
+    %
+    Let $v'$ be a vertex other than $u, v$ and consider the following three
+    cases.
+
+    \begin{cccItemize}[nosep]
+        \item When $\orderOutput''(v') < \orderOutput''(v)$, the distance of backward edge $(v, v')$ in $\orderOutput''$ is less than that in $\orderOutput'$.
+
+        \item When $\orderOutput''(v) < \orderOutput''(v') < \orderOutput'(v)$, if $(v', v)$ is a backward edge in $\orderOutput''$ then its distance is strictly less than $d^*$.
+
+        \item When $\orderOutput'(v) < \orderOutput''(v')$, note that it holds $(v, v') \in E$; otherwise, since $\txDelay^* \le 3\txDelay$, a transaction diffusion time window can last for at most \txDelay rounds, and in a typical execution the adversary can only manipulate the median timestamp to some time within the diffusion window, we have: when $\tx_{v'} \before \tx_{v}$ it implies that $\tx_{v'} \before \tx_{u}$ (i.e., $(v', u)$ is a backward edge in $\orderOutput'$), contradicting the fact that $(v, u)$ is the backward edge of largest distance.
+        %
+        Thus, $(v, v')$ remains as forward edges and has no effect on $E'(\orderOutput'')$.
+    \end{cccItemize}
+
+    A similar argument can be made for $u$ due to symmetry.
+    %
+    Since all newly introduced backward edges have distance $d' < d^* \le \DBW(G)$, we get $\DBW(\orderOutput'', G) = \DBW(G)$ and if $m(E'_{\orderOutput'}, d^*) = 1$ then no backward edge of distance no less than $d^*$ exists in $\orderOutput''$ hence $d(E'_{\orderOutput''}) < d(E'_{\orderOutput'})$;
+    %
+    if $m(E'_{\orderOutput'}, d^*) \ge 1$ then since $(v, u)$ is no longer a backward edge in $\orderOutput''$ we have $d(E'_{\orderOutput''}) = d(E'_{\orderOutput'})$ and $m(E'_{\orderOutput''}, d^*) \le m(E'_{\orderOutput'}, d^*) - 1$.
+
+    By iteratively applying the above swapping strategy, for any bandwidth-optimal ordering $\orderOutput'$ we shall convert it into another bandwidth-optimal ordering \orderOutput that $d(E'_\orderOutput) = 0$ hence it satisfies both items (i) (ii) in the lemma.
+\end{proof}
+
+\paragraph{Time complexity of \cref*{algorithm:directed-bandwidth-large-cycle}.}
+%
+We define throughput $t$ as the number of concurrent transaction entered into the system within a $\txDelay^*$ time window, thus in the pre-processing stage in \cref{algorithm:directed-bandwidth-large-cycle}, for each vertex $v$ at most $t$ edges with target in $v$ will be preserved in $E_{\mathsf{backward}}$.
+%
+I.e., after this stage we have $|E_{\mathsf{backward}}| \le |V|t$.
+%
+In addition, due to \cref{thm:dbw-partition} the we have $\DBW(G) < t$, thus Saxe's algorithm runs in $f(t) \cdot |V|^t$ time where $f(t)$ depends only on $t$ (For more details, refer to \cite{SIAMMAX:Saxe80}).
+%
+Combining these two parts together we get $f(t) \cdot |V|^t \cdot 2^{|V|t}$ (note that $t \ll |V|)$.
+
+\begin{remark}
+    The size of $E_{\mathsf{backward}}$ still grows exponentially.
+    %
+    However, note that the input to Saxe's algorithm should be a DAG.
+    %
+    I.e., when iterating over the subset of $E_{\mathsf{backward}}$, we shall not call Saxe's algorithm in many scenarios.
+    %
+    For instance, let $C$ be a cycle in an SCC.
+    %
+    If none of its edges are in the subset of $E_{\mathsf{backward}}$ then we can skip to the next iteration without calling Saxe's algorithm (because $C$ preserves in the result graph thus it must not be a DAG).
+    %
+    While this has no effect on the asymptotic result, we remark it here for some intuition on the practicality of \cref{algorithm:directed-bandwidth-large-cycle}.
+\end{remark}

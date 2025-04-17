@@ -1,0 +1,26 @@
+\subsection{An Exact Algorithm for DirectedBandwidth} \label{subsec:exact-algorithm-directed-bandwidth}
+
+We briefly describe the exact algorithm for \textsc{DirectedBandwidth} in \cref{algorithm:directed-bandwidth}.
+%
+For more technical details, refer to \cite{FSTTCS:JKLSS19}.
+
+The general idea of this algorithm follows the strategy of ``kill what cause you
+trouble'' --- i.e., since only the back edges show effect in deciding directed
+bandwidth of a graph $G$, we could first guess the set of back edges $R$, then
+remove all forward edges (i.e., we get a directed acyclic graph $G' = (V_G, R)$)
+and convert it to a \textsc{DAG-Bandwidth} problem on $G'$.
+%
+A \textsc{DAG-Bandwidth} problem asks to output a topological sort on a DAG $D$ with the minimum bandwidth (note that this is the bandwidth of the undirected graph $D'$ constructed from $D$, by connecting vertices $u, v$ when at least one $(u,v)$ or $(v, u)$ exists in $D$).
+%
+Jain \textit{et al.} \cite[Section 3]{FSTTCS:JKLSS19} presents an algorithm
+that solves \textsc{DAG-Bandwidth}, following the idea from Cygan and Pilipczuk \cite{CygPil08}.
+%
+Roughly speaking, this algorithm consists of two phases \textsc{Bucketing} and \textsc{Ordering}.
+%
+The \textsc{Bucketing} phase allocates a set of vertices to a range of consecutive positions of a targeted size; the outcome of this step is a collection of bucketings containing a bucketing that is ``consistent'' with the final ordering.
+%
+Then, the \textsc{Ordering} phase extracts a topological ordering from the buckets acquired in the previous phase.
+
+\input{algorithms/directed-bandwidth}
+
+\textsc{DAG-Bandwidth} can be solved in $\bigO^\ast(3^{|V|})$ time \cite{CygPil08,FSTTCS:JKLSS19}; since the total number of possible back edge set is $2^{|E|}$, \cref{algorithm:directed-bandwidth} runs in $\bigO^\ast(3^{|V|} \cdot 2^{|E|})$ time.
