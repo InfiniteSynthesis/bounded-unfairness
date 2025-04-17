@@ -1,6 +1,6 @@
 {
     "editor.wordWrap": "wordWrapColumn",
-    "editor.fontSize": 14,
+    "editor.fontSize": 12,
     "latex-workshop.formatting.latex": "latexindent",
     "editor.rulers": [
         {
@@ -8,4 +8,13 @@
             "color": "#BB6588"
         }
     ],
+    "cSpell.mergeCSpellSettings": false,
+    "cSpell.words": [
+        "Aequitas",
+        "Merkle",
+        "permissioned",
+        "permissionless",
+        "pompe",
+        "supergraph"
+    ]
 }
