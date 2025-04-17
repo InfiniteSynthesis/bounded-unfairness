@@ -53,8 +53,8 @@ This public data structure is called \emph{ledger} in the context of ledger cons
 %
 Conventionally, a public ledger should satisfy two properties (we adopt \ledger as the settled part of the ledger in party's view, and $\widetilde{\ledger}$ the whole ledger held by the party).
 %
-\begin{enumerate}[label=\FlatSteel, leftmargin=*, noitemsep]
+\begin{cccItemize}[noitemsep]
     \item \textbf{Consistency}: For any two honest parties \party, $\party'$ reporting \ledger, $\ledger'$ at rounds $r \le r'$, respectively, it holds that \ledger is a prefix of $\widetilde{\ledger'}$.
     
     \item \textbf{Liveness}: (parameterized by $u \in \mathbb{N}$, the ``wait time'' parameter): If a transaction \tx is provided to all honest parties for $u$ consecutive rounds, then it holds that for any player \party, \tx will be in \ledger.
-\end{enumerate}
+\end{cccItemize}
