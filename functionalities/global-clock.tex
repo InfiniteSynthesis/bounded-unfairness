@@ -5,12 +5,13 @@
 
     This functionality maintains state variables as follows.
 
+    \addtocounter{table}{-1}
     \begin{tabularx}{.9\textwidth}{c X}
         \toprule[.3mm]
         \textbf{State Variable}
          & \textbf{Description}
         \\ \midrule[.3mm]
-        $\partyset \gets \emptyset$ 
+        $\partyset \gets \emptyset$
          & The set of registered parties $\party = (\pid, \sid)$.
         \\ \midrule
         $F \gets \emptyset$
@@ -26,7 +27,6 @@
          & The clock-update variable for $(\F, \sid) \in F$.
         \\ \bottomrule[.3mm]
     \end{tabularx}
-    \addtocounter{table}{-1}
 
     \begin{cccItemize}[noitemsep]
         \item Upon receiving $(\textsc{clock-update}, \sid_C)$ from some party $\party \in \partyset$ set $d_\party \gets 1$; execute \emph{Round-Update} and forward $(\textsc{clock-update}, \sid_C, \party)$ to \adv.
