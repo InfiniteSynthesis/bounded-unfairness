@@ -1,5 +1,6 @@
 \begin{figure}[ht]
-    \begin{tabularx}{\linewidth}{Y Y}
+    \begin{minipage}{.5\linewidth}
+        \centering
         \begin{tikzpicture}
             \foreach \angle [count = \xi] in {90, 45, ..., -235}
                 {
@@ -17,7 +18,10 @@
                     \draw[-latex, line width = .1em] (node\x) -- (node\y);
                 }
         \end{tikzpicture}
-         &
+    \end{minipage}
+    %
+    \begin{minipage}{0.49\linewidth}
+        \centering
         \begin{tikzpicture}
             \node[circle, fill = white, draw = black, inner sep = .2em, outer sep=0pt] (node2) {2};
             \foreach \xi [count = \xii] in {3, 1, 5, 6, 8, 4, 7}
@@ -49,14 +53,17 @@
             \draw[bend right = 25, ->, line width = .1em, gray]  (node28) to node [auto] {} (node21);
             \draw[bend left = 30, ->, line width = .1em, gray]  (node28) to node [auto] {} (node24);
         \end{tikzpicture}
-        \\
-        (a) dependency graph $G_{\profileSet, \varphi}$ \linebreak
-         &
+    \end{minipage}
+
+    \begin{minipage}[t]{.5\linewidth}
+        \centering
+        (a) Dependency graph $G_{\profileSet, \varphi}$
+    \end{minipage}
+    %
+    \begin{minipage}[t]{.49\linewidth}
+        \centering
         (b) $(\varphi, \DBW)$-fair-order (above) and lexicographic order (below)
-        \\
-    \end{tabularx}
-    \addtocounter{table}{-1}
-    \medskip
+    \end{minipage}
 
     \caption{Illustration of a dependency graph, a $(\varphi, \DBW)$-fair-order and a lexicographic order on \profileSet. Only back edges are illustrated in (b).}
     \label{fig:optimal-bandwidth-order}

@@ -1,5 +1,6 @@
 \begin{figure}[ht]
-	\begin{tabularx}{.8\linewidth}{Y Y}
+	\begin{minipage}{.5\linewidth}
+		\centering
 		\begin{tikzpicture}
 			\foreach \angle [count = \xi] in {90, 60, ..., -180}
 				{
@@ -20,8 +21,11 @@
 					\draw[-latex,line width = .05em] (node\x) -- (node\y);
 				}
 		\end{tikzpicture}
-		 &
-		\begin{tikzpicture}[scale=1.1]
+	\end{minipage}
+	%
+	\begin{minipage}{.49\linewidth}
+		\centering
+		\begin{tikzpicture}[scale=1.2]
 			\node[circle, fill, minimum size=.4em, inner sep=0pt, outer sep=0pt, label=above:1] (node1) {};
 			\node[circle, fill, minimum size=.4em, inner sep=0pt, outer sep=0pt, label=above:2] at ([xshift = 15em]node1)(node2) {};
 			\draw[-latex,line width = .1em] (node1) -- (node2);
@@ -41,15 +45,17 @@
 					\draw[-latex,line width = .1em] (node3\xi) -- (node3\i);
 				}
 		\end{tikzpicture}
-		\\
+	\end{minipage}
+	\begin{minipage}{.5\linewidth}
+		\centering
 		(a) \textsf{Aequitas}
-		 &
+	\end{minipage}
+	%
+	\begin{minipage}{.49\linewidth}
+		\centering
 		(b) \textsf{pompe}
-		\\
-	\end{tabularx}
-    \addtocounter{table}{-1}
-	\medskip
-	
+	\end{minipage}
+
 	\caption{Illustration of dependency graphs.}
 	\label{fig:bad-bandwidth-illustration}
 \end{figure}
