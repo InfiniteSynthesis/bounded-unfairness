@@ -22,7 +22,7 @@ Given the unrealizability of fairness for $B = 0$, the obvious question to ask h
 
 In order to minimize $B$, we allow it to be a function of the parties' input profiles and the given pair of transactions.
 %
-The input profiles define a transaction dependency graph $G$ which includes an edge $(\tx, \tx')$  if and only if $\tx \before^\varphi \tx'$. Given this, we observe that the problem of $(\varphi, B)$ fairness relates to the concept of \emph{graph bandwidth} over $G$, cf. \cite{FSTTCS:JKLSS19}.
+The input profiles define a transaction dependency graph $G$ which includes an edge $(\tx, \tx')$  if and only if $\tx \before^\varphi \tx'$. Given this, we observe that the problem of $(\varphi, B)$-fairness relates to the concept of \emph{graph bandwidth} over $G$, cf. \cite{FSTTCS:JKLSS19}.
 %
 The bandwidth problem asks for a vertex ordering $\sigma: V \rightarrow \mathbb{N}$ that minimizes the \emph{maximum difference} $\sigma(u) - \sigma(v)$ across all edges $(u,v) \in E$.
 %

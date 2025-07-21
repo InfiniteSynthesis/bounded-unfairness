@@ -88,7 +88,7 @@ Suppose there exists an upper bound \txDelay on transaction dissemination, i.e.,
 %
 We show that the results in \cref{thm:liveness-fairness-async} can be mitigated in this scenario.
 
-The core observation is, if a Condorcet cycle spans for a long period of time, we can perform partition on the set of transactions in this cycle, and these partitions correspond to a good partition on the dependency graph such that we can figure out an upper bound on the \textsc{DirectedBandwidth} problem.
+The core observation is, if a Condorcet cycle spans for a long period of time, we can split the set of transactions in this cycle, and the resulting partitions correspond to a good partition on the dependency graph such that we can figure out an upper bound on the \textsc{DirectedBandwidth} problem.
 
 The partition rule on the dependency graph goes as follows.
 %

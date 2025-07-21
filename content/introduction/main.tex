@@ -43,7 +43,7 @@ Motivated by the above, we set out to investigate the natural objective of minim
 %
 This objective, similar to block order fairness, needs no shared notion of time to be meaningful, but it also translates to an eminently practical guarantee in the SMR setting that block order fairness lacks: the system will strive to minimize the number of (inevitable) unfair state updates that happen before the processing of any transaction.
 
-To illustrate the importance of bounded unfairness with an example, consider a simple automated market maker (AMM) where it maintains a constant product $XY = C$ for swapping two tokens $X$ and $Y$ ($Y$ is the native token) and one transaction can only sell a fixed number of tokens.
+To illustrate the importance of bounded unfairness with an example, consider a simple automated market maker (AMM) that maintains a constant product $XY = C$ for swapping two tokens $X$ and $Y$ ($Y$ is the native token) and one transaction can only sell a fixed number of tokens.
 %
 When the market loses confidence in $X$, every stakeholder would like to sell $X$ to minimize her loss.
 %
